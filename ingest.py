@@ -13,7 +13,7 @@ FIELDS = {'title', 'group', 'goal', 'body', 'practice', 'questions'}
 class Fragment(HTMLParser):
     TAGS = {'p', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 'dl',
             'dt', 'dd', 'a', 'aside', 'br', 'hr', 'h4',
-            'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote'}
+            'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'details', 'summary'}
 
     def __init__(self):
         super().__init__(convert_charrefs=False)

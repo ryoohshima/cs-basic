@@ -123,8 +123,12 @@ class NotesTest(unittest.TestCase):
             for i, lesson in enumerate(self.lessons, 1):
                 page = output / 'lessons' / f'{i:03}.html'
                 self.assertEqual(parsed[page].articles, 1)
-                self.assertEqual(parsed[page].answers, len(lesson['questions']))
+                self.assertEqual(parsed[page].answers, len(lesson['questions']) + lesson['body'].count('<details>') + lesson['practice'].count('<details>'))
                 text = page.read_text()
+                self.assertNotIn('&lt;details&gt;', text)
+                self.assertNotIn('&lt;summary&gt;解答を見る', text)
+                if 4 <= i <= 15:
+                    self.assertIn('<details><summary>解答を見る</summary>', text)
                 if i > 1:
                     self.assertIn(f'href="{i-1:03}.html"', text)
                 if i < len(self.lessons):
