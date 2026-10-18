@@ -1,0 +1,310 @@
+{
+  "10279b270776874d3c8e624072d93add872d3929620710cde0b4169f39cc817d": {
+    "title": "配列の途中への挿入",
+    "mermaid": "flowchart TD\nn0[\"変更前：10｜20｜30｜40\"]\nn1[\"30の位置に25を挿入したい\"]\nn2[\"① 後ろの要素を移動：10｜20｜空き｜30｜40\"]\nn3[\"② 25を挿入：10｜20｜25｜30｜40\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "4798c3e130dde11d16379685b34ab5cde8a426100182cf90decf4acb49ed391c": {
+    "title": "連結リストの参照",
+    "mermaid": "flowchart LR\nn0[\"Head\"]\nn1[\"値 10｜next\"]\nn2[\"値 20｜next\"]\nn3[\"値 30｜next: null\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "ebfb2edc65a3be391fef02b0a1c59a9ec227277d4b6f8269770234df253509a9": {
+    "title": "挿入前の連結リスト",
+    "mermaid": "flowchart LR\nn0[\"10\"]\nn1[\"20\"]\nn2[\"30\"]\nn3[\"null\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "4d64bdad7d5fd9ec54a1cafeca45b434d2453b7f62c235b70c2b956e226c0baf": {
+    "title": "25を挿入した連結リスト",
+    "mermaid": "flowchart LR\nn0[\"10\"]\nn1[\"20\"]\nn2[\"25\"]\nn3[\"30\"]\nn4[\"null\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "28e3b769a0ae819984b86bac3baa1c48ebbac59331312dbc6db5da34bd1f678c": {
+    "title": "配列と連結リストの配置",
+    "mermaid": "flowchart TD\nA[\"配列：10｜20｜30｜40\"] --> B[\"近くのデータをまとめて取得しやすい\"]\nC[\"連結リスト\"] --> D[\"10\"] --> E[\"20\"] --> F[\"30\"] --> G[\"40\"]\nC --> H[\"各ノードはメモリ上で離れている可能性がある\"]"
+  },
+  "d955421d2d0480352cdba0cb2b0593c861eb9b25dff8331a8a673c5cfc87e33e": {
+    "title": "先頭と末尾への参照",
+    "mermaid": "flowchart LR\nH[\"Head\"] --> A[\"A\"] --> B[\"B\"] --> C[\"C\"] --> N[\"null\"]\nT[\"Tail\"] --> C"
+  },
+  "8954fa1f11fd928d24f8c3740f332b8f538308499c305bceeb61d8ac8eefaca5": {
+    "title": "データ構造と実際の性能",
+    "mermaid": "flowchart TD\nA[\"データ構造の選択\"] --> B[\"アルゴリズムの計算量：O(1)、O(n) など\"]\nA --> C[\"メモリ上の配置：連続配置／参照で接続\"]\nA --> D[\"CPUキャッシュの効率\"]\nA --> E[\"実際の操作頻度\"]\nB --> F[\"実際のパフォーマンス\"]\nC --> F\nD --> F\nE --> F"
+  },
+  "a7c20b00a5aad97298a1d77bdbf3d5501eedfd511a5ee03fe5a122bbcdad118c": {
+    "title": "連結リストへの挿入手順",
+    "mermaid": "flowchart TD\nA[\"変更前：A → B → C\"] --> B[\"① X.next = A.next：XからBへ参照\"] --> C[\"② A.next = X：AからXへ参照\"] --> D[\"挿入後：A → X → B → C\"]"
+  },
+  "f2ea0ca67b2825780b72cec3128d6e755b3abf1edd09f52aeb6f5c387cbc4b06": {
+    "title": "線形探索の比較順",
+    "mermaid": "flowchart LR\nn0[\"101：違う\"]\nn1[\"102：違う\"]\nn2[\"103：見つかった\"]\nn0 --> n1 --> n2"
+  },
+  "811a66229b8569f23fc1c6c524ae8f3aecd651459706de48f04c51f76948d8f9": {
+    "title": "キーから格納位置を計算",
+    "mermaid": "flowchart LR\nA[\"キー101\"] --> B[\"101 % 10 = 1\"]\nC[\"キー102\"] --> D[\"102 % 10 = 2\"]\nE[\"キー103\"] --> F[\"103 % 10 = 3\"]"
+  },
+  "97ef1cb935de747051d27dfa258b0549e55448fc374a80a36525fde5030bcd59": {
+    "title": "ハッシュテーブルのバケット",
+    "mermaid": "flowchart TD\nT[\"ハッシュテーブル\"]\nT --- n0[\"Index 0：空き\"]\nT --- n1[\"Index 1：Alice\"]\nT --- n2[\"Index 2：Bob\"]\nT --- n3[\"Index 3：Carol\"]\nT --- n4[\"Index 4：空き\"]\nT --- n5[\"Index 5：空き\"]\nT --- n6[\"Index 6：空き\"]\nT --- n7[\"Index 7：空き\"]\nT --- n8[\"Index 8：空き\"]\nT --- n9[\"Index 9：空き\"]"
+  },
+  "1394f5218452a41beb081f4fef1e121b4464caafeb34e7eb253fb1077dde0851": {
+    "title": "ハッシュによる検索",
+    "mermaid": "flowchart TD\nn0[\"キー102\"]\nn1[\"ハッシュ関数\"]\nn2[\"102 % 10 = 2\"]\nn3[\"Index 2\"]\nn4[\"Bob\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "c1d09728257e72d2c7fe76ba37ad24fa6f586720b6e54662473322a9a957cf95": {
+    "title": "ハッシュの衝突",
+    "mermaid": "flowchart LR\nA[\"101\"] --> I[\"Index 1\"]\nB[\"111\"] --> I\nC[\"121\"] --> I"
+  },
+  "a1571a30dbfaa2a2f0f82a35c8c0224bb28d7759c4fbea332234c4196b3cc0a2": {
+    "title": "チェイン法で衝突を扱う",
+    "mermaid": "flowchart TD\nn0[\"Index 1\"]\nn1[\"101, Alice\"]\nn2[\"111, Dave\"]\nn3[\"121, Eve\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "52a7e73ac2f45bbc18444c116dee56c417eea5e0b2cccbc9addb8940cf6e9784": {
+    "title": "空きバケットを探す",
+    "mermaid": "flowchart TD\nA[\"101\"] --> B[\"Index 1 に格納\"]\nC[\"111\"] --> D[\"Index 1 が埋まっている\"] --> E[\"Index 2 に格納\"]"
+  },
+  "dda166dc0eaff2a38576c550a1f722c4c823697a8e43cddf0cafe53829d754e6": {
+    "title": "バケットの拡張",
+    "mermaid": "flowchart TD\nn0[\"変更前：10個のバケット\"]\nn1[\"拡張\"]\nn2[\"変更後：20個のバケット\"]\nn0 --> n1 --> n2"
+  },
+  "9c427913ab08b62656746aa6fe636d3756528a013b5004b5805724f0f74c9441": {
+    "title": "予約一覧からMapを構築",
+    "mermaid": "flowchart TD\nA[\"予約一覧\"] -->|\"O(n) で構築\"| M[\"Map\"]\nM --> B[\"r001 → Reservation A\"]\nM --> C[\"r002 → Reservation B\"]\nM --> D[\"r003 → Reservation C\"]\nM --> E[\"IDによる高速検索\"]"
+  },
+  "ebd5545056f115bbc6c544c97f29dd6548d32581d96e41647de32c100190c94d": {
+    "title": "データ構造による探索の違い",
+    "mermaid": "flowchart TD\nA[\"配列\"] --> B[\"インデックスで直接アクセス\"] --> C[\"O(1) のアクセス\"]\nD[\"連結リスト\"] --> E[\"参照を順番にたどる\"] --> F[\"O(n) の探索\"]\nG[\"ハッシュテーブル\"] --> H[\"キーをハッシュ関数で変換\"] --> I[\"格納位置を特定\"] --> J[\"平均 O(1) の探索\"]"
+  },
+  "48838cfaf7fc133b76d241a50a6aee40714fb74ad2bfa644daddc99d4e2f3a3a": {
+    "title": "大量データの線形探索",
+    "mermaid": "flowchart TD\nn0[\"1：違う\"]\nn1[\"2：違う\"]\nn2[\"3：違う\"]\nn3[\"…順番に比較…\"]\nn4[\"10000：あった\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "0b0db8d941d01b193f1363f9dce105ce76df8a4125a720a6596f9c5367414fd5": {
+    "title": "キーから値を直接探す",
+    "mermaid": "flowchart TD\nn0[\"key = 10000\"]\nn1[\"ハッシュ関数\"]\nn2[\"格納されている場所を計算\"]\nn3[\"値を取得\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "9e9b25c9e0d8e826b0a2a6a739ee85127d26718f78aca8cc9f965d8d1980bdea": {
+    "title": "データ構造と探索方法",
+    "mermaid": "flowchart TD\nA[\"データ構造：データをどう持つか\"] --> B[\"アルゴリズム：そこからどう探すか\"]\nC[\"Array\"] --> D[\"線形探索\"] --> E[\"O(n)\"]\nF[\"Map（ハッシュテーブル）\"] --> G[\"ハッシュによる検索\"] --> H[\"平均 O(1)\"]"
+  },
+  "9624a628606965726e8d8caa4c4b94d26bd0ded7bc8a322b771fc723de6e3a36": {
+    "title": "探索方法と計算量",
+    "mermaid": "flowchart LR\nA[\"Array + 線形探索\"] --> B[\"O(n)\"]\nC[\"ソート済みArray + 二分探索\"] --> D[\"O(log n)\"]\nE[\"Hash Table（Map）+ ハッシュによる検索\"] --> F[\"平均 O(1)\"]"
+  },
+  "b1e9f139097b0509a32123a1501fd5846808e9493582aa75072ffe13b9112058": {
+    "title": "文字列キーの格納先",
+    "mermaid": "flowchart TD\nn0[\"alice\"]\nn1[\"ハッシュ関数\"]\nn2[\"253718…\"]\nn3[\"格納場所を決定\"]\nn4[\"bucket 3\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "5755424c8993f9c57e9ed8fa604599d9a9350259f42ee2c25f60d3a38d154131": {
+    "title": "バケットと格納データ",
+    "mermaid": "flowchart TD\nT[\"bucket\"]\nT --- n0[\"0：空き\"]\nT --- n1[\"1：bob\"]\nT --- n2[\"2：空き\"]\nT --- n3[\"3：alice\"]\nT --- n4[\"4：空き\"]\nT --- n5[\"5：carol\"]\nT --- n6[\"6：空き\"]\nT --- n7[\"7：空き\"]"
+  },
+  "39711779d72c3578e281e206903a5a7a8d692dd950ab16393b1e684b7c3a4850": {
+    "title": "文字列キーを検索する",
+    "mermaid": "flowchart TD\nn0[\"alice\"]\nn1[\"ハッシュ関数\"]\nn2[\"253718…\"]\nn3[\"bucket 3\"]\nn4[\"alice発見\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "23bd13cf1386740bed8972c852b9dcf99efde36e4da97ada340ca35f2db1cd8f": {
+    "title": "順番に比較する検索",
+    "mermaid": "flowchart TD\nn0[\"bobかな？：違う\"]\nn1[\"carolかな？：違う\"]\nn2[\"aliceかな？：あった\"]\nn0 --> n1 --> n2"
+  },
+  "0fe4c2810bc126f58c9fe656d8a7d0671c68d114cbdc9c55e4ce8e8b05300ad3": {
+    "title": "ハッシュ関数の役割",
+    "mermaid": "flowchart LR\nn0[\"キー\"]\nn1[\"数値\"]\nn0 --> n1"
+  },
+  "885222e3653760377237e0bafb1e34c84c987d8b34ce9001a111dc09240da9ad": {
+    "title": "キーとハッシュ値",
+    "mermaid": "flowchart LR\nA[\"hash(alice)\"] --> B[\"12345\"]\nC[\"hash(bob)\"] --> D[\"87291\"]\nE[\"hash(carol)\"] --> F[\"33107\"]"
+  },
+  "339a49061f0bec4f04ea406c3f091afd333afd498f82da6764c4a6e8960e81e6": {
+    "title": "ハッシュ検索の流れ",
+    "mermaid": "flowchart TD\nn0[\"key\"]\nn1[\"hash(key)\"]\nn2[\"bucketを計算\"]\nn3[\"そこを見る\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "9abc4e1142930573d48eaa4c081e52998f7cc631c66d8e2863d2b4be1e855f1b": {
+    "title": "同じバケットへの衝突",
+    "mermaid": "flowchart LR\nA[\"hash(alice) % 8\"] --> B[\"bucket 3\"]\nC[\"hash(bob) % 8\"] --> B"
+  },
+  "50af75d2c83c79ae3e7ab038946c147d64c2cc4be2991999308a3d23443e5406": {
+    "title": "衝突したバケット",
+    "mermaid": "flowchart TD\nA[\"bucket 3\"] --> B[\"alice\"]\nA --> C[\"bob\"]"
+  },
+  "bb45e25c967f2f94aefc242ac2c9dcf5dc1589ccece259f297a6022c991eaf20": {
+    "title": "Mapの概念と検索性能",
+    "mermaid": "flowchart TD\nn0[\"Map\"]\nn1[\"概念的にはハッシュテーブル系の構造\"]\nn2[\"平均 O(1) 程度でキー検索できる\"]\nn0 --> n1 --> n2"
+  },
+  "0a61d4f363b4a0bf8b33ea4ff82badf5fae011abbd0033d9e3d4ca3531fe9a22": {
+    "title": "二分探索で60を探す",
+    "mermaid": "flowchart TD\nn0[\"10, 20, 30, 中央40, 50, 60, 70\"]\nn1[\"60 > 40\"]\nn2[\"右半分だけを見る：50, 中央60, 70\"]\nn3[\"60を発見\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "8b0ed32036c667aa55798cfc075d7c5a0616057b7e0d2ef24edb258790a3a06c": {
+    "title": "二分探索で候補を半分にする",
+    "mermaid": "flowchart TD\nn0[\"100万件\"]\nn1[\"50万件\"]\nn2[\"25万件\"]\nn3[\"12.5万件\"]\nn4[\"…\"]\nn5[\"約20回\"]\nn0 --> n1 --> n2 --> n3 --> n4 --> n5"
+  },
+  "4a75eabb7f38fbd8f98afc81cc571b271b3069fc497337b0dc1597c59871301c": {
+    "title": "探索方法の比較",
+    "mermaid": "flowchart TD\nA[\"Array.find()\"] --> B[\"順番に探す\"] --> C[\"O(n)\"]\nD[\"ソート済みArray + 二分探索\"] --> E[\"毎回半分を捨てる\"] --> F[\"O(log n)\"]\nG[\"Map\"] --> H[\"キーから格納場所を求める\"] --> I[\"平均 O(1)\"]"
+  },
+  "8b871bb01df69081deac700d98b3d454cb71e40f31ffa59ea32fd7946fe64816": {
+    "title": "剰余による格納先と衝突",
+    "mermaid": "flowchart LR\nA[\"説明用：格納先 = 整数キー % 10\"]\nA --> B[\"101\"] --> I[\"1：101と111が衝突\"]\nA --> C[\"102\"] --> J[\"2\"]\nA --> D[\"111\"] --> I"
+  },
+  "2a6a31b623c0b75161281a3ec70332634dc724c68b7dd6cdc6094812aff1b182": {
+    "title": "二分探索木",
+    "mermaid": "flowchart TD\nn0[\"50\"]\nn1[\"30\"]\nn2[\"70\"]\nn3[\"20\"]\nn4[\"40\"]\nn5[\"60\"]\nn6[\"80\"]\nn0 --> n1\nn0 --> n2\nn1 --> n3\nn1 --> n4\nn2 --> n5\nn2 --> n6"
+  },
+  "7bf8a84cf8e44a6c261fbbe769114cd13f1f1e8a83f3ac050aaf0b28a526348c": {
+    "title": "二分探索木で60を探す",
+    "mermaid": "flowchart TD\nn0[\"50：60 > 50\"] --> n1[\"30\"]\nn0 -->|\"右へ\"| n2[\"70：60 < 70\"]\nn1 --> n3[\"20\"]\nn1 --> n4[\"40\"]\nn2 -->|\"左へ\"| n5[\"60：発見\"]\nn2 --> n6[\"80\"]"
+  },
+  "22a7dd7d8f3c25c5046d53e7ebcef6fbd2011fd75205332ca3e928f31b9a1845": {
+    "title": "各階層のノード数",
+    "mermaid": "flowchart TD\nn0[\"階層0：50（1個）\"]\nn1[\"階層1：30（計2個）\"]\nn2[\"階層1：70\"]\nn3[\"階層2：20（計4個）\"]\nn4[\"階層2：40\"]\nn5[\"階層2：60\"]\nn6[\"階層2：80\"]\nn0 --> n1\nn0 --> n2\nn1 --> n3\nn1 --> n4\nn2 --> n5\nn2 --> n6"
+  },
+  "f14ab412c28f9d7ac46541c635b086a57272087d52e611d75e7d762c7f73ed0e": {
+    "title": "右に偏った二分探索木",
+    "mermaid": "flowchart TD\nn0[\"10\"]\nn1[\"20\"]\nn2[\"30\"]\nn3[\"40\"]\nn4[\"50\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "84b280ae833b49226bc69240154173fc50d607504740742093b603fccd38fb6a": {
+    "title": "予約IDの二分探索木",
+    "mermaid": "flowchart TD\nn0[\"150\"]\nn1[\"101\"]\nn2[\"205\"]\nn3[\"80\"]\nn4[\"120\"]\nn5[\"180\"]\nn6[\"250\"]\nn0 --> n1\nn0 --> n2\nn1 --> n3\nn1 --> n4\nn2 --> n5\nn2 --> n6"
+  },
+  "75f0a0a694c1aa9cfdd98549f354cb883d1698e5f69676db64c6de92711a7390": {
+    "title": "均衡した二分探索木",
+    "mermaid": "flowchart TD\nn0[\"40\"]\nn1[\"20\"]\nn2[\"60\"]\nn3[\"10\"]\nn4[\"30\"]\nn5[\"50\"]\nn6[\"70\"]\nn0 --> n1\nn0 --> n2\nn1 --> n3\nn1 --> n4\nn2 --> n5\nn2 --> n6"
+  },
+  "1191e8bdc440aaf301e97434580c8ceea8d281c180b8468ba8d4112ae6f57cee": {
+    "title": "左右に分岐する探索木",
+    "mermaid": "flowchart TD\nA[\"30\"] --> B[\"20\"] --> D[\"10\"]\nA --> C[\"40\"] --> E[\"50\"]"
+  },
+  "34d1db6c0a5618f6291d8600e83e6278e141dde222f11822626dcc2fca75fb6f": {
+    "title": "データ構造が計算量を決める",
+    "mermaid": "flowchart TD\nn0[\"データ構造\"]\nn1[\"データの配置・関係性\"]\nn2[\"探索時に除外できる範囲\"]\nn3[\"必要な比較回数\"]\nn4[\"計算量\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "330fbd0b1e5b24379f69389b0b6bbfea059f4bdc0024afb0a256c3012f54a92d": {
+    "title": "60の探索経路",
+    "mermaid": "flowchart TD\nA[\"50\"] --> B[\"30\"]\nA -->|\"60 > 50\"| C[\"70\"]\nB --> D[\"20\"]\nB --> E[\"40\"]\nC -->|\"60 < 70\"| F[\"60：発見\"]\nC --> G[\"80\"]"
+  },
+  "999b6a9fd2419c964919124433ca893f304e12f5a037a28571adef69b4a472d4": {
+    "title": "記憶装置の速度階層",
+    "mermaid": "flowchart TD\nn0[\"CPUキャッシュ：高速\"]\nn1[\"RAM\"]\nn2[\"SSD：比較的低速\"]\nn0 --> n1 --> n2"
+  },
+  "b3db80587a31750616ece683d82864e5db9d97ab0d105e86554ce997bafda67b": {
+    "title": "複数のキーを持つ木",
+    "mermaid": "flowchart TD\nA[\"30｜60\"] --> B[\"10｜20\"]\nA --> C[\"40｜50\"]\nA --> D[\"70｜80｜90\"]"
+  },
+  "ac96f4c292c8c9003339b9bd323affbd4c664309568bec1c65fea19de0ae3e0c": {
+    "title": "ページ単位でキーと参照を格納",
+    "mermaid": "flowchart TD\nsubgraph P[\"1ページ（例：8KiB）\"]\nA[\"キー10｜キー20｜キー30｜…\"]\nB[\"子への参照情報\"]\nend"
+  },
+  "4a8f3d6e40ce26755d411ea6063e87a213eaa73a902584baa80ff7f6d94d1125": {
+    "title": "多分岐でカバーできる範囲",
+    "mermaid": "flowchart TD\nn0[\"第1段階：100方向\"]\nn1[\"第2段階：10,000方向\"]\nn2[\"第3段階：1,000,000方向\"]\nn0 --> n1 --> n2"
+  },
+  "433c6de48b58a712adeb90978d72a7b2d81cdedf625b01f1b86d271134816075": {
+    "title": "葉ページを順にたどる範囲検索",
+    "mermaid": "flowchart LR\nA[\"80, 90\"] --> B[\"100, 120, 150：開始位置\"] -->|\"200まで順番に取得\"| C[\"180, 200\"] --> D[\"210, 230：対象外\"]"
+  },
+  "7f22d1be9a4cfcd308a0bb3e70821441bc4c9a54a5110351526738edfed4509d": {
+    "title": "キャッシュからDB検索までのつながり",
+    "mermaid": "flowchart TD\nn0[\"CPUとメモリの速度差\"]\nn1[\"CPUキャッシュが必要\"]\nn2[\"参照の局所性が重要になる\"]\nn3[\"ストレージではページ単位の読み込みが重要\"]\nn4[\"1ページに多数のキーを格納する\"]\nn5[\"B-treeで木の高さを抑える\"]\nn6[\"DBの検索を高速化する\"]\nn0 --> n1 --> n2 --> n3 --> n4 --> n5 --> n6"
+  },
+  "558130137beaa49967592c5cb46f495d9792bbf2ee7b211b059d64f8767be8c1": {
+    "title": "B-treeで50を探す",
+    "mermaid": "flowchart TD\nA[\"30｜60\"] --> B[\"10｜20\"]\nA -->|\"50は30より大きく60より小さい：中央へ\"| C[\"40｜50：発見\"]\nA --> D[\"70｜80\"]"
+  },
+  "8fde019a34f7aa162155e1e9f1410b5fdc808bf1fa8f2e0cabe04edd786ebed4": {
+    "title": "送金の途中でクラッシュ",
+    "mermaid": "flowchart TD\nn0[\"① Aから10,000円引く：成功\"]\nn1[\"② サーバーがクラッシュ\"]\nn2[\"③ Bに10,000円加える：未実行\"]\nn0 --> n1 --> n2"
+  },
+  "4721355101925743adbce805d139c80ff9385ac0d7b4fc300a3a3107b4049d22": {
+    "title": "同じ在庫を同時に購入する競合",
+    "mermaid": "sequenceDiagram\nparticipant A as Transaction A\nparticipant D as 在庫\nparticipant B as Transaction B\nNote over A,B: 初期状態：在庫 = 1\nA->>D: 在庫を読む\nD-->>A: 1\nB->>D: 在庫を読む\nD-->>B: 1\nNote over A: 購入可能\nNote over B: 購入可能\nA->>D: 在庫を更新\nB->>D: 在庫を更新\nNote over A: COMMIT\nNote over B: COMMIT"
+  },
+  "f4ebc1cad6c709db74dd3e280bcc833b60bcec175a455bc8dd29ea6264fda602": {
+    "title": "予約ステータスの同時更新",
+    "mermaid": "sequenceDiagram\nparticipant A as スタッフA\nparticipant API as API\nparticipant B as スタッフB\nNote over A,B: 時刻 10:00\nA->>API: 予約ステータスを取得\nAPI-->>A: 未対応\nB->>API: 予約ステータスを取得\nAPI-->>B: 未対応\nNote over A: 確定に変更\nNote over B: キャンセルに変更\nA->>API: 更新リクエスト\nB->>API: 更新リクエスト"
+  },
+  "13ded5c3b220279383c560496f6b46f40e635456ac025d4afab65df543ec1325": {
+    "title": "バージョンを持つ予約レコード",
+    "mermaid": "flowchart TD\nR[\"reservation\"] --> I[\"id: 101\"]\nR --> S[\"status: pending\"]\nR --> V[\"version: 3\"]"
+  },
+  "478c66d517bd2d7f9bb1b747f13fca6537b326862b431e2d9b7f8c7ab2823a17": {
+    "title": "古いバージョンの更新を検出",
+    "mermaid": "sequenceDiagram\nparticipant B as スタッフB\nparticipant D as 予約レコード\nparticipant A as スタッフA\nNote over D: version 3\nB->>D: version 3 を指定して更新\nD-->>B: 更新成功：version 4\nA->>D: version 3 を指定して更新\nD-->>A: 更新0件"
+  },
+  "6b814ca3c1533d31d4169a50b905d48efc1e659534cd57b72183bf524e605620": {
+    "title": "競合制御の学習のつながり",
+    "mermaid": "flowchart TD\nA[\"第6回：競合状態\"] --> B[\"複数の処理が同じデータを変更する\"]\nA --> C[\"第7回：排他制御・デッドロック\"]\nC --> D[\"ロックで競合を制御する\"]\nC --> E[\"ロックの使い方によっては停止する\"]\nC --> F[\"第15回：トランザクション\"]\nF --> G[\"ACIDでデータの正しさを守る\"]\nF --> H[\"MVCCなどで並行実行を制御する\"]\nF --> I[\"楽観的ロックで更新競合を検出する\"]"
+  },
+  "cd784a02b1544b4d037bb77106ad8c1d27ad5db256fa5add05700a7a20c354d5": {
+    "title": "性能と整合性のつながり",
+    "mermaid": "flowchart TD\nn0[\"CPUとメモリには速度差がある\"]\nn1[\"データの配置方法が性能に影響する\"]\nn2[\"用途に応じてデータ構造を選ぶ\"]\nn3[\"大量データの検索にはインデックスを使う\"]\nn4[\"複数の処理が同時に更新する場合は整合性も守る必要がある\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "fa47a53fd1cb4c23c48695a993feca18246c9f0d1f3a8c9ccf388cd471efbad1": {
+    "title": "動的配列の容量拡張",
+    "mermaid": "flowchart TD\nn0[\"最初：10｜20｜30｜空き\"]\nn1[\"追加：10｜20｜30｜40\"]\nn2[\"容量不足\"]\nn3[\"より大きな領域を確保\"]\nn4[\"10｜20｜30｜40｜50｜空き｜空き｜空き\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "36624a11b6e3f49dab498f67d9a142f3a9e3972f5ae37832579bca9ebf1357e2": {
+    "title": "連結リストの順序",
+    "mermaid": "flowchart LR\nn0[\"10\"]\nn1[\"20\"]\nn2[\"30\"]\nn3[\"40\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "0fb60078bdea3d2692704ef03eebdca4ccb59d8b270099635c61418b7ccb97a1": {
+    "title": "キー200のハッシュ検索",
+    "mermaid": "flowchart TD\nn0[\"キー200\"]\nn1[\"ハッシュ関数\"]\nn2[\"格納場所を計算\"]\nn3[\"Bob\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "9e2125774d738f22b10d495c630e856bbc2544bc1f39a891767e4625d193605a": {
+    "title": "二分探索木",
+    "mermaid": "flowchart TD\nn0[\"50\"]\nn1[\"30\"]\nn2[\"70\"]\nn3[\"20\"]\nn4[\"40\"]\nn5[\"60\"]\nn6[\"80\"]\nn0 --> n1\nn0 --> n2\nn1 --> n3\nn1 --> n4\nn2 --> n5\nn2 --> n6"
+  },
+  "6ce1ffcf87129432af6a4d8c3536bdc5d2b552bf15e1c9cd0ba29c664cdb65dc": {
+    "title": "60を探す経路",
+    "mermaid": "flowchart LR\nn0[\"50\"]\nn1[\"70\"]\nn2[\"60\"]\nn0 --> n1 --> n2"
+  },
+  "c7f80f3294eb74529733761c292d32930a39ea37ef6ff966b23bc3a4cd78b412": {
+    "title": "B-treeの分岐",
+    "mermaid": "flowchart TD\nA[\"30｜60\"] --> B[\"10, 20\"]\nA --> C[\"40, 50\"]\nA --> D[\"70, 80\"]"
+  },
+  "606bce30197a60375efb670bf7a19de0631019c2666dccbe7f11cc8308d26032": {
+    "title": "B-treeの分岐",
+    "mermaid": "flowchart TD\nA[\"30｜60\"] --> B[\"10, 20\"]\nA --> C[\"40, 50\"]\nA --> D[\"70, 80\"]"
+  },
+  "00191ddb7377932a90765b2314a3f589f0f43c9599b82de1f08789d82fcf4acf": {
+    "title": "同じ予約への異なる操作",
+    "mermaid": "flowchart LR\nA[\"スタッフA\"] -->|\"予約を確定\"| R[\"同じ予約\"]\nB[\"スタッフB\"] -->|\"予約をキャンセル\"| R"
+  },
+  "559da3bef5d9922cee6e889b5187d5d8f525e735a323a3dadb748a301e289f11": {
+    "title": "CSの学習ロードマップ",
+    "mermaid": "flowchart TD\nA[\"プログラムの実行\"] --> B[\"プロセス・スレッド\"] --> C[\"複数の処理を同時に進める\"]\nC --> D[\"競合状態\"]\nC --> E[\"デッドロック\"]\nB --> F[\"メモリの管理\"]\nF --> G[\"仮想メモリ\"]\nF --> H[\"CPUキャッシュ\"]\nF --> I[\"データの管理\"]\nI --> J[\"配列\"]\nI --> K[\"連結リスト\"]\nI --> L[\"ハッシュテーブル\"]\nI --> M[\"二分探索木\"]\nI --> N[\"データベース\"]\nN --> O[\"B-tree：高速検索\"]\nN --> P[\"トランザクション：整合性\"]"
+  },
+  "8747e80e34849ed6dab51f7e4c81d0c8ffe71ae970e16d1a96575749a0a04286": {
+    "title": "Chromeのプロセスとスレッド",
+    "mermaid": "flowchart TD\nC[\"Chrome\"] --> A[\"プロセスA\"]\nC --> B[\"プロセスB\"]\nA --> A1[\"スレッド1\"]\nA --> A2[\"スレッド2\"]\nB --> B1[\"スレッド1\"]\nB --> B2[\"スレッド2\"]"
+  },
+  "2c1ab459eea410cae2d686c68b63973cde651c0e62fdbacafb53d3caa34b72c8": {
+    "title": "インクリメントの内部手順",
+    "mermaid": "flowchart TD\nn0[\"① 現在の値を読む\"]\nn1[\"② 1を足す\"]\nn2[\"③ 結果を書き込む\"]\nn0 --> n1 --> n2"
+  },
+  "47e349eb849a9ec602b1cc806980cf47fb6b0a4dfcb86329518b76a30b2abe16": {
+    "title": "インクリメントの競合",
+    "mermaid": "sequenceDiagram\nparticipant A as Thread A\nparticipant C as count\nparticipant B as Thread B\nNote over C: 初期値 count = 0\nA->>C: 読む\nC-->>A: 0\nB->>C: 読む\nC-->>B: 0\nA->>C: 1を書き込む\nB->>C: 1を書き込む\nNote over C: 最終結果 count = 1"
+  },
+  "33a1618bc875dbc10c882129facf5d175dbf89bebff288085c3a9acd8fa9a8ae": {
+    "title": "ロックで更新を順番に実行",
+    "mermaid": "sequenceDiagram\nparticipant A as Thread A\nparticipant L as ロック\nparticipant B as Thread B\nA->>L: ロック取得\nNote over A: 更新\nB->>L: 待機\nA->>L: ロック解除\nL-->>B: 待機終了\nNote over B: 更新"
+  },
+  "301d2adc49844e5f1a6d1bdbe2403f18c3c18a43d475f37b66d02a7dc791bc42": {
+    "title": "ロックの相互待ちによるデッドロック",
+    "mermaid": "flowchart TD\nA[\"Thread A\"] --> X[\"ロックXを取得\"] --> Y[\"ロックYを待つ\"]\nB[\"Thread B\"] --> Z[\"ロックYを取得\"] --> W[\"ロックXを待つ\"]\nY --> D[\"互いに待ち続ける\"]\nW --> D"
+  },
+  "413ddebf9c4e470e7e5eec9b3d27decac4d3dba140905eabc7a34caa79753e6b": {
+    "title": "同じ仮想アドレスと異なる物理アドレス",
+    "mermaid": "flowchart TD\nA[\"プロセスA：仮想アドレス100\"] --> B[\"物理アドレス500\"]\nC[\"プロセスB：仮想アドレス100\"] --> D[\"物理アドレス900\"]"
+  },
+  "38b9719a3179887095abc28a7b5e99e7cde8d32dac0c2eb63725a45abf0e973f": {
+    "title": "CPUからRAMへの階層",
+    "mermaid": "flowchart TD\nn0[\"CPU\"]\nn1[\"L1キャッシュ\"]\nn2[\"L2キャッシュ\"]\nn3[\"L3キャッシュ\"]\nn4[\"RAM\"]\nn0 --> n1 --> n2 --> n3 --> n4"
+  },
+  "38bcf32f9140d19ad500af95485c4e415844009ed0b4e9cc061086eeb2b6d3de": {
+    "title": "ハッシュ検索の流れ",
+    "mermaid": "flowchart TD\nn0[\"キー\"]\nn1[\"ハッシュ関数\"]\nn2[\"格納位置を求める\"]\nn3[\"データ取得\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "5c72fc281addf20203e955ec2c9ec580f231169951a008abcf1f881c3c2f9f43": {
+    "title": "送金を構成する2つの処理",
+    "mermaid": "flowchart TD\nn0[\"① Aから1万円を引く\"]\nn1[\"② Bに1万円を加える\"]\nn0 --> n1"
+  }
+}

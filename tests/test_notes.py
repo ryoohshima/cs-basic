@@ -5,6 +5,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import shutil
 import unittest
 from html import unescape
 from html.parser import HTMLParser
@@ -76,14 +77,45 @@ class NotesTest(unittest.TestCase):
             root = Path(folder).resolve()
             for name in ['build.py', 'ingest.py', 'lessons.json']:
                 (root / name).write_bytes((BASE / name).read_bytes())
+            shutil.copytree(BASE / 'assets', root / 'assets')
+            shutil.copytree(BASE / 'diagram-data', root / 'diagram-data')
+            definitions = {}
+            for path in (BASE / 'diagram-data').glob('*.json'):
+                definitions.update(json.loads(path.read_text()))
+            for raw in re.findall(r'<pre\b[^>]*><code>(.*?)</code></pre>', self.payload['lesson']['body'], re.S):
+                key = hashlib.sha256(unescape(raw).encode()).hexdigest()
+                if key in definitions:
+                    self.payload['lesson']['diagrams'] = {key: {**definitions[key], 'title': '新しい回専用の図'}}
+                    break
             append_lesson(root / 'lessons.json', self.payload)
             subprocess.run([sys.executable, str(root / 'build.py')], check=True)
             number = self.payload['number']
             self.assertTrue((root / 'dist' / 'lessons' / f'{number:03}.html').exists())
             previous = (root / 'dist' / 'lessons' / f'{number-1:03}.html').read_text()
             self.assertIn(f'href="{number:03}.html"', previous)
+            self.assertNotIn('新しい回専用の図', previous)
+            self.assertIn('新しい回専用の図', (root / 'dist' / 'lessons' / f'{number:03}.html').read_text())
             index = (root / 'dist' / 'index.html').read_text()
             self.assertIn(f'href="lessons/{number:03}.html"', index)
+
+    def test_diagram_input_and_archive(self):
+        body = '<pre><code>開始 → 完了</code></pre>'
+        key = hashlib.sha256('開始 → 完了'.encode()).hexdigest()
+        diagram = {'title': '処理の流れ', 'mermaid': 'flowchart LR\nA["開始"] --> B["完了"]'}
+        validate_lesson({**self.lesson, 'body': body, 'diagrams': {key: diagram}})
+        with self.assertRaises(ValueError):
+            validate_lesson({**self.lesson, 'body': body, 'diagrams': {'wrong-key': diagram}})
+        with self.assertRaises(ValueError):
+            validate_lesson({**self.lesson, 'body': body, 'diagrams': {key: {**diagram, 'mermaid': 'flowchart LR\nclick A "https://example.com"'}}})
+        available = set()
+        for lesson in self.lessons:
+            for text in re.findall(r'<pre\b[^>]*><code>(.*?)</code></pre>', lesson['body'] + lesson['practice'], re.S):
+                available.add(hashlib.sha256(unescape(text).encode()).hexdigest())
+        for path in (BASE / 'diagram-data').glob('*.json'):
+            for key, diagram in json.loads(path.read_text()).items():
+                self.assertIn(key, available)
+                self.assertTrue(diagram['title'])
+                self.assertRegex(diagram['mermaid'], r'^(flowchart|graph|sequenceDiagram)\b')
 
     def test_reject_unsafe_or_incomplete_input(self):
         for fragment in ['<script>alert(1)</script>', '<a href="javascript:alert(1)">x</a>',
@@ -125,7 +157,7 @@ class NotesTest(unittest.TestCase):
             for i, lesson in enumerate(self.lessons, 1):
                 page = output / 'lessons' / f'{i:03}.html'
                 self.assertEqual(parsed[page].articles, 1)
-                self.assertEqual(parsed[page].answers, len(lesson['questions']) + lesson['body'].count('<details>') + lesson['practice'].count('<details>') + 1)
+                self.assertEqual(parsed[page].answers, len(lesson['questions']) + lesson['body'].count('<details>') + lesson['practice'].count('<details>') + 1 + page.read_text().count('<figure class="diagram">'))
                 text = page.read_text()
                 self.assertNotIn('&lt;details&gt;', text)
                 self.assertNotIn('&lt;summary&gt;解答を見る', text)
@@ -133,6 +165,9 @@ class NotesTest(unittest.TestCase):
                     self.assertIn('<details><summary>解答を見る</summary>', text)
                 self.assertNotRegex(text, r'>(?:プレーンテキスト|JavaScript|SQL|http)\s*<pre')
                 self.assertNotIn('<h4>元スレッドの講義</h4>', text)
+                self.assertIn('<figure class="diagram">', text)
+                self.assertIn('assets/mermaid-12.2.0.min.js', text)
+                self.assertIn('テキストで確認する', text)
                 prose = re.sub(r'<(?:pre|code)\b[^>]*>.*?</(?:pre|code)>', '', text, flags=re.S)
                 self.assertNotRegex(prose, r'\*\*[^*<>]+\*\*')
                 self.assertIn('<details class="supplement">', text)
