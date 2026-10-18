@@ -1,0 +1,62 @@
+name: Receive lesson and publish
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [cs-lesson]
+  workflow_dispatch:
+    inputs:
+      lesson_json:
+        description: '講義JSON。空欄なら教材を再公開'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: learning-notes-publish
+  cancel-in-progress: false
+  queue: max
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Receive the delivered lesson
+        if: github.event_name == 'repository_dispatch' || inputs.lesson_json != ''
+        run: python3 ingest.py
+      - run: python3 -m unittest discover -s tests -v
+      - run: python3 build.py
+      - name: Save lesson data
+        if: github.event_name == 'repository_dispatch' || inputs.lesson_json != ''
+        run: |
+          git add lessons.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'feat: 配信された講義を追記'
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the learning notes
+        id: deployment
+        uses: actions/deploy-pages@v4
