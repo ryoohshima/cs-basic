@@ -73,7 +73,7 @@ def validate_fragment(value):
     parser = Fragment()
     parser.feed(value)
     parser.close()
-    if parser.stack:
+    if parser.stack or parser.rawdata:
         raise ValueError('HTMLの閉じタグが不足しています')
 
 

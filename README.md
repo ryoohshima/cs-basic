@@ -55,7 +55,7 @@ gh workflow run publish.yml --repo ryoohshima/cs-basic --ref main -F lesson_json
 1. 実装PRを確認してmainへ反映する。
 2. Settings → Pages → Build and deployment の Source を **GitHub Actions** にする。
 3. **Receive lesson and publish** を入力なしで実行し、初回公開の成功を確認する。
-4. Codexの同期予約を有効にする。毎朝5時15分（Asia/Tokyo）、元の配信チャットを読む。新規の講義がなければ静かに終了し、本文を確認できなければ推測で教材を作らない。
+4. Codexの同期予約「CS学習ノートの新着同期」は毎朝5時15分（Asia/Tokyo）に元の配信チャットを読む設定。導入PR未マージ・初回公開未確認の間は書き込みを行わない。新規の講義がなければ静かに終了し、本文を確認できなければ推測で教材を作らない。
 
 同期予約は配信処理とは別の追記専用処理です。既存5時配信の時刻・指示・通知設定は変更しません。実装PRが未マージの間は同期によるリポジトリ変更を行いません。予約の実行環境には元チャットの読み取りと、このリポジトリのActions実行（または講義データPR作成）が可能なGitHub接続が必要です。ローカル実行ではアプリや端末の稼働状況による遅延があり得ます。
 
