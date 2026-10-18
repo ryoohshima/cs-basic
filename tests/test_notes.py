@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -132,10 +133,17 @@ class NotesTest(unittest.TestCase):
                     self.assertIn('<details><summary>解答を見る</summary>', text)
                 self.assertNotRegex(text, r'>(?:プレーンテキスト|JavaScript|SQL|http)\s*<pre')
                 self.assertNotIn('<h4>元スレッドの講義</h4>', text)
+                prose = re.sub(r'<(?:pre|code)\b[^>]*>.*?</(?:pre|code)>', '', text, flags=re.S)
+                self.assertNotRegex(prose, r'\*\*[^*<>]+\*\*')
                 self.assertIn('<details class="supplement">', text)
                 original = lesson['body'].split('<h4>補足解説</h4>', 1)[0]
                 for tag, block in re.findall(r'<(p|pre|li|td|th)(?:\s[^>]*)?>(.*?)</\1>', original, re.S):
-                    self.assertIn(block, text, (i, tag, block[:60]))
+                    if tag == 'pre':
+                        self.assertIn(block, text, (i, tag, block[:60]))
+                    else:
+                        def plain(value):
+                            return ' '.join(unescape(re.sub(r'<[^>]+>', '', value)).replace('**', '').split())
+                        self.assertIn(plain(block), plain(text), (i, tag, block[:60]))
                 if i > 1:
                     self.assertIn(f'href="{i-1:03}.html"', text)
                 if i < len(self.lessons):

@@ -41,6 +41,8 @@ def present_body(lesson):
   text = text.replace('元スレッドの追加回答：', '関連する疑問：').replace('元スレッドの復習：', '復習：').replace('元スレッドの総復習：', '総復習：')
   return '<h4>' + text + '</h4>'
  body = re.sub(r'<h4>(.*?)</h4>', heading, body, flags=re.S)
+ chunks = re.split(r'(<pre\b[^>]*>.*?</pre>|<code\b[^>]*>.*?</code>)', body, flags=re.S)
+ body = ''.join(chunk if i % 2 else re.sub(r'\*\*([^*<>]+)\*\*', r'<strong>\1</strong>', chunk) for i,chunk in enumerate(chunks))
  body = re.sub(r'(<details><summary>解答を見る</summary>)(.*?)(</details>)', r'\1<div class="answer">\2</div>\3', body, flags=re.S)
  return body, supplement if marker else ''
 css='''
