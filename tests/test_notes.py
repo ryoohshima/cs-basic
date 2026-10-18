@@ -1,5 +1,6 @@
 import copy
 import hashlib
+import re
 import json
 import subprocess
 import sys
@@ -123,12 +124,18 @@ class NotesTest(unittest.TestCase):
             for i, lesson in enumerate(self.lessons, 1):
                 page = output / 'lessons' / f'{i:03}.html'
                 self.assertEqual(parsed[page].articles, 1)
-                self.assertEqual(parsed[page].answers, len(lesson['questions']) + lesson['body'].count('<details>') + lesson['practice'].count('<details>'))
+                self.assertEqual(parsed[page].answers, len(lesson['questions']) + lesson['body'].count('<details>') + lesson['practice'].count('<details>') + 1)
                 text = page.read_text()
                 self.assertNotIn('&lt;details&gt;', text)
                 self.assertNotIn('&lt;summary&gt;解答を見る', text)
                 if 4 <= i <= 15:
                     self.assertIn('<details><summary>解答を見る</summary>', text)
+                self.assertNotRegex(text, r'>(?:プレーンテキスト|JavaScript|SQL|http)\s*<pre')
+                self.assertNotIn('<h4>元スレッドの講義</h4>', text)
+                self.assertIn('<details class="supplement">', text)
+                original = lesson['body'].split('<h4>補足解説</h4>', 1)[0]
+                for tag, block in re.findall(r'<(p|pre|li|td|th)(?:\s[^>]*)?>(.*?)</\1>', original, re.S):
+                    self.assertIn(block, text, (i, tag, block[:60]))
                 if i > 1:
                     self.assertIn(f'href="{i-1:03}.html"', text)
                 if i < len(self.lessons):
