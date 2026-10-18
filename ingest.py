@@ -12,7 +12,8 @@ FIELDS = {'title', 'group', 'goal', 'body', 'practice', 'questions'}
 
 class Fragment(HTMLParser):
     TAGS = {'p', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 'dl',
-            'dt', 'dd', 'a', 'aside', 'br', 'h4'}
+            'dt', 'dd', 'a', 'aside', 'br', 'hr', 'h4',
+            'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote'}
 
     def __init__(self):
         super().__init__(convert_charrefs=False)
@@ -28,7 +29,7 @@ class Fragment(HTMLParser):
                     raise ValueError('リンクはHTTPS URLのみ使用できます')
             elif (key, value) not in {('class', 'ref'), ('tabindex', '0')}:
                 raise ValueError(f'許可されていない属性: {key}')
-        if tag != 'br':
+        if tag not in {'br', 'hr'}:
             self.stack.append(tag)
 
     def handle_data(self, data):

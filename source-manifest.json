@@ -1,0 +1,77 @@
+[
+  {
+    "number": 1,
+    "sha256": "2a1c75f5a8e417a0e68b174501e818b75ec7b8c462f2c49dd0297a249dfb0322",
+    "html_characters": 2448
+  },
+  {
+    "number": 2,
+    "sha256": "d88919a7a0047d877aee963564a14615b1648d2eeb95ce0454db9ad6b5b43cc9",
+    "html_characters": 8297
+  },
+  {
+    "number": 3,
+    "sha256": "7643b9ba84bb70040bc0fbd7709c084b260b8b8765d73d2e27d7f840721d49d9",
+    "html_characters": 3822
+  },
+  {
+    "number": 4,
+    "sha256": "5269dd766b640bc52498effbb9b4e22a8795fbca0b291bcf1484c7323b2ed1f6",
+    "html_characters": 4805
+  },
+  {
+    "number": 5,
+    "sha256": "15b92561908da94a243a7a3f543276a9f26458f37fa7298b5c5a4e280ab6392b",
+    "html_characters": 5928
+  },
+  {
+    "number": 6,
+    "sha256": "a2e39df3bfc83eb944c3321226112b1d8c5d49748197f7758677f5b2caf47e78",
+    "html_characters": 5655
+  },
+  {
+    "number": 7,
+    "sha256": "f8a99a39cdefb26ce6dc7c57870398b2a8daadc1f20524842a5c5e6dc5d62efc",
+    "html_characters": 5349
+  },
+  {
+    "number": 8,
+    "sha256": "f0f1ecc4e493e815a19f3d2684928526f24a8f7e9480382769514f16cfe76d8b",
+    "html_characters": 5456
+  },
+  {
+    "number": 9,
+    "sha256": "089982335cfadf06dd3d055d6788e8c3c6af02947aaabc12594d0326bfafed01",
+    "html_characters": 5686
+  },
+  {
+    "number": 10,
+    "sha256": "6735f3b9ad82b9f8d8ff1a328cb03a49bf17b62683bcdafa92b2c30d8442f49e",
+    "html_characters": 6695
+  },
+  {
+    "number": 11,
+    "sha256": "099c3e23efbf44b3a33c67058796b1c958d126023c4478e0cee4f10358f51741",
+    "html_characters": 6694
+  },
+  {
+    "number": 12,
+    "sha256": "474efb27d779e245f8e92b524cf9f1435b8d4eb6e636545bb2a7b25cc47a62bd",
+    "html_characters": 12181
+  },
+  {
+    "number": 13,
+    "sha256": "e47e6f1d2e4cc8d2e367722350785dc5bac7350f36833746bbc9e504b9bc42cd",
+    "html_characters": 6241
+  },
+  {
+    "number": 14,
+    "sha256": "7a5ecf3add2a797ec12ba956e8c97e6319a786a7186f208b9e936133b5c12fae",
+    "html_characters": 5864
+  },
+  {
+    "number": 15,
+    "sha256": "339538901a594ee619b69b4da439df7d12a25250478147b663cdac84cec3ec76",
+    "html_characters": 20453
+  }
+]

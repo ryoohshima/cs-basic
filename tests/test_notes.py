@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 import subprocess
 import sys
@@ -59,6 +60,15 @@ class NotesTest(unittest.TestCase):
             self.assertEqual(path.read_bytes(), saved)
             self.assertEqual(json.loads(saved)[:-1], self.lessons)
 
+    def test_original_lessons_are_preserved(self):
+        manifest = json.loads((BASE / 'source-manifest.json').read_text())
+        self.assertEqual([item['number'] for item in manifest], list(range(1, 16)))
+        for item in manifest:
+            body = self.lessons[item['number'] - 1]['body']
+            original = body.split('<h4>元スレッドの講義</h4>', 1)[1].split('<h4>補足解説</h4>', 1)[0]
+            self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), item['sha256'])
+            self.assertEqual(len(original), item['html_characters'])
+
     def test_next_lesson_builds_with_updated_navigation(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder).resolve()
@@ -89,6 +99,12 @@ class NotesTest(unittest.TestCase):
             subprocess.run([sys.executable, str(BASE / 'build.py'), str(output)], check=True)
             files = list(output.rglob('*.html'))
             self.assertEqual(len(files), len(self.lessons) + 2)
+            index = (output / 'index.html').read_text()
+            self.assertNotIn('<article', index)
+            self.assertNotIn('<section', index)
+            self.assertNotIn('<details', index)
+            self.assertNotIn('まず、全体のつながり', index)
+            self.assertNotIn('全回をまとめて読む', index)
             parsed = {}
             for path in files:
                 parser = Links()
