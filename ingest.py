@@ -1,6 +1,7 @@
 """Validate a delivered lesson and append it once, without modifying earlier lessons."""
 import json
 import os
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -70,6 +71,10 @@ def validate_lesson(lesson):
 
 
 def validate_fragment(value):
+    # Reject incomplete tokens before HTMLParser, whose recovery differs by Python version.
+    tokens_removed = re.sub(r"""<(?:[^<>"']|"[^"]*"|'[^']*')*>""", '', value)
+    if '<' in tokens_removed:
+        raise ValueError('HTMLタグが未完了です。文字の < は &lt; にしてください')
     parser = Fragment()
     parser.feed(value)
     parser.close()
