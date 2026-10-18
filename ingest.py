@@ -2,6 +2,8 @@
 import json
 import os
 import re
+import hashlib
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -48,7 +50,7 @@ class Fragment(HTMLParser):
 
 
 def validate_lesson(lesson):
-    if not isinstance(lesson, dict) or set(lesson) != FIELDS:
+    if not isinstance(lesson, dict) or set(lesson) not in (FIELDS, FIELDS | {'diagrams'}):
         raise ValueError('講義のフィールドが一致しません')
     for field in FIELDS - {'questions'}:
         value = lesson[field]
@@ -59,6 +61,21 @@ def validate_lesson(lesson):
                 raise ValueError('見出しはプレーンテキストにしてください')
         else:
             validate_fragment(value)
+    diagrams = lesson.get('diagrams', {})
+    if not isinstance(diagrams, dict):
+        raise ValueError('図はキーと定義のオブジェクトが必要です')
+    texts = re.findall(r'<pre\b[^>]*><code>(.*?)</code></pre>', lesson['body'] + lesson['practice'], re.S)
+    keys = {hashlib.sha256(unescape(text).encode()).hexdigest() for text in texts}
+    for key, diagram in diagrams.items():
+        if key not in keys or not isinstance(diagram, dict) or set(diagram) != {'title', 'mermaid'}:
+            raise ValueError('図のキーまたはフィールドが不正です')
+        title, definition = diagram['title'], diagram['mermaid']
+        if not isinstance(title, str) or not title.strip() or len(title) > 200 or '<' in title or '>' in title:
+            raise ValueError('図のタイトルが不正です')
+        if not isinstance(definition, str) or len(definition) > 20000 or not re.match(r'^(flowchart|graph|sequenceDiagram)\b', definition):
+            raise ValueError('対応していない図の定義です')
+        if '%%{' in definition or re.search(r'^\s*click\s', definition, re.M):
+            raise ValueError('図の設定変更やクリック操作は指定できません')
     questions = lesson['questions']
     if not isinstance(questions, list) or not 1 <= len(questions) <= 20:
         raise ValueError('確認問題は1〜20問必要です')

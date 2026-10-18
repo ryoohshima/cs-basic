@@ -1,0 +1,142 @@
+{
+  "d9c851656c682c8868aaf8a459997b9cc833f3ab5266c521bd2c92dc6aaaa809": {
+    "title": "CPUからストレージへの階層",
+    "mermaid": "flowchart TD\n N0[\"CPU\"]\n N1[\"L1キャッシュ：速い\"]\n N2[\"L2キャッシュ\"]\n N3[\"L3キャッシュ\"]\n N4[\"メインメモリ\"]\n N5[\"SSD：遅い\"]\n N0 --> N1\n N1 --> N2\n N2 --> N3\n N3 --> N4\n N4 --> N5"
+  },
+  "00c889db3c3b6d95b59aad850fc195307d6eb6261c703619e974588d41d546a9": {
+    "title": "プログラムを実行する仕組み",
+    "mermaid": "flowchart TD\n S[\"ストレージ：プログラムやファイルを保存\"] -->|\"必要な内容を読み込む\"| R[\"RAM：実行する命令・処理中のデータ\"]\n R <-->|\"キャッシュなどを介してやり取り\"| C[\"CPU：命令の取得 → 解読 → 実行\"]"
+  },
+  "2c13c2ab341d3ce4eeda48282da237f124303ac24310c293f97b5d183868e323": {
+    "title": "関数呼び出しの処理領域",
+    "mermaid": "flowchart TD\n N0[\"add を呼ぶ\"]\n N1[\"a = 2<br/>b = 3<br/>result = 5\"]\n N2[\"return\"]\n N3[\"add の処理領域を破棄\"]\n N0 --> N1\n N1 --> N2\n N2 --> N3"
+  },
+  "1f08c42daebde4152a12c5d1e098f6d11fef074a745f6eac5f339ac6b2ed862e": {
+    "title": "関数が順に呼ばれる",
+    "mermaid": "flowchart TD\n N0[\"main\"]\n N1[\"foo()\"]\n N2[\"bar()\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "20b17c2a7612c2fa968be767be73855fadb84cd4759ed0dad199d7e0104ffadd": {
+    "title": "呼び出しスタックの積み重なり",
+    "mermaid": "flowchart TD\n subgraph S[\"コールスタック：上が先に戻る\"]\n direction TB\n B[\"bar：最上段\"] --- F[\"foo\"] --- M[\"main：最下段\"]\n end"
+  },
+  "a18956c5389ba200bfb8f20d851265a6281b59e40caee396f1ca1f3c5f7cd49b": {
+    "title": "変数からオブジェクトへの参照",
+    "mermaid": "flowchart TD\n N0[\"user\"]\n N1[\"ヒープ上のオブジェクトへの参照\"]\n N0 --> N1"
+  },
+  "5795431ce14939cb67a39f719a156f0cd458893bc70c680e62b1dace0d1e377c": {
+    "title": "2つの変数が同じオブジェクトを参照",
+    "mermaid": "flowchart LR\n A[\"a\"] --> O[\"共有オブジェクト：count = 2\"]\n B[\"b\"] --> O"
+  },
+  "9c5ef43012c43bb1b6b22d5995645e6936d80734d4434f653b3754b64ee723e0": {
+    "title": "新しいオブジェクトで更新する",
+    "mermaid": "flowchart TD\n N0[\"古いオブジェクト\"]\n N1[\"新しいオブジェクトを作成\"]\n N2[\"参照先を変更\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "f80e543b51cae5b444e03bb906155cc9275bfcd35830b89400d38e8d357c2798": {
+    "title": "参照が残ると回収できない",
+    "mermaid": "flowchart TD\n N0[\"参照が残る\"]\n N1[\"GCできない\"]\n N2[\"メモリが増え続ける\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "96b9e1a6bfb4080a846e5a81e319e172d927608dad3d8a25c40566060d7c5daa": {
+    "title": "userの参照先",
+    "mermaid": "flowchart TD\n N0[\"変数 user\"]\n N1[\"オブジェクト：name = Alice<br/>age = 30\"]\n N0 --> N1"
+  },
+  "552a173b94f7b4d24d4f29ae09a0eaded56404f7ba7af4581433f616edaaaba3": {
+    "title": "参照先を直接書き換える",
+    "mermaid": "flowchart TD\n U[\"user\"] --> O[\"同じオブジェクト：name = Alice<br/>age = 31 ← ここを書き換えた\"]"
+  },
+  "2abdb44082e7b37245bf777c2c182ed119efdf4855f722f2c51da8813fe7c94c": {
+    "title": "Reactのstateとuserが共有する参照（age = 30）",
+    "mermaid": "flowchart TD\n S[\"Reactのstate\"] --> O[\"Object A：name = Alice<br/>age = 30\"]\n U[\"user\"] --> O"
+  },
+  "cc0bf964d7fadbfe473bdba328fb602ea1ae39e7067703125ae88456dbdac6f5": {
+    "title": "Reactのstateとuserが共有する参照（age = 31）",
+    "mermaid": "flowchart TD\n S[\"Reactのstate\"] --> O[\"Object A：name = Alice<br/>age = 31\"]\n U[\"user\"] --> O"
+  },
+  "3ece0c8361cd5915484c79f5cd4729fa49f81a273123baf27f40d450b45b738a": {
+    "title": "更新前後で参照が同じ場合",
+    "mermaid": "flowchart LR\n S1[\"以前のstate\"] --> A[\"Object A\"]\n S2[\"新しいstate\"] --> A"
+  },
+  "9cea71696b6973939f5f99fc2749f32256a1ea9ae216382e606758c1454114b3": {
+    "title": "新しい参照に切り替えて更新する",
+    "mermaid": "flowchart TD\n subgraph Before[\"変更前\"]\n S1[\"React state\"] --> A[\"Object A：Alice, 30\"]\n end\n Before -->|\"setUser：userを展開してageを31にする\"| After\n subgraph After[\"変更後\"]\n S2[\"React state\"] --> B[\"Object B：Alice, 31\"]\n end"
+  },
+  "fd800d54c4b10daa28fd5f9f3b10f93c529316c25c9c824a6f70b0176e7481ed": {
+    "title": "参照の同一性で値を判断する",
+    "mermaid": "flowchart TD\n Q{\"同じ参照？\"} -->|\"YES\"| Y[\"同じ値として扱える\"]\n Q -->|\"NO\"| N[\"新しい値\"]"
+  },
+  "c5db748cea17fb7ea9aec359661b9834fd18937ef8661be5112e82b7d96907b2": {
+    "title": "浅いコピーで共有される入れ子のオブジェクト",
+    "mermaid": "flowchart TD\n U[\"user\"] --> A[\"Object A\"]\n N[\"newUser\"] --> B[\"Object B\"]\n A -->|\"address\"| C[\"Object C：Tokyo\"]\n B -->|\"address\"| C"
+  },
+  "b9b708d20365ffd639268668b7f5d8ad52231d8b797b5230b05d3c9caf4b4642": {
+    "title": "呼び出しと復帰の順序",
+    "mermaid": "sequenceDiagram\n participant M as main()\n participant A as a()\n participant B as b()\n M->>A: 呼び出す\n A->>B: 呼び出す\n Note over B: スタック最上段：現在実行中\n Note over M,A: スタック下側：main()、a()\n B-->>A: 戻る\n Note over A: a() の続きを実行"
+  },
+  "b04213cdba32941bbf6114c1d6bc4eb743acdaf7da0b927d72bc7702906f2f18": {
+    "title": "外側の関数が終了するまで",
+    "mermaid": "flowchart TD\n N0[\"createCounter() 呼び出し\"]\n N1[\"count = 0\"]\n N2[\"return\"]\n N3[\"関数終了\"]\n N0 --> N1\n N1 --> N2\n N2 --> N3"
+  },
+  "365ad9185c9b989f88fffad1e0e50639ed7dc42ff7c8acb29ab21d3f17c338ab": {
+    "title": "クロージャが変数環境を保持する",
+    "mermaid": "flowchart TD\n N0[\"counter\"]\n N1[\"内部関数\"]\n N2[\"外側の変数環境\"]\n N3[\"count = 0\"]\n N0 --> N1\n N1 --> N2\n N2 --> N3"
+  },
+  "28bd43f569ff0df8d20c21567ec0a40d86c54927e2d85a402c97da46cfa1292f": {
+    "title": "関数を介して変数へ到達する",
+    "mermaid": "flowchart TD\n N0[\"counter\"]\n N1[\"function\"]\n N2[\"count\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "219367f6d6f46ea0b072d0455a9e77e1d0fb607146ef350af030f0316e7b04ee": {
+    "title": "到達できるデータは回収されない",
+    "mermaid": "flowchart TD\n N0[\"参照が残っている\"]\n N1[\"到達可能\"]\n N2[\"GCされない\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "58e4d73ff30b0c1a012c53597ebeb3f06d8e6df1506281802a5d486169f183d9": {
+    "title": "クリック処理が変数を保持する",
+    "mermaid": "flowchart TD\n N0[\"click handler\"]\n N1[\"userId\"]\n N0 --> N1"
+  },
+  "4753988bfd660c5d1ce83b2c959736f8eb0346d58f4040801f24ac9607fc04c7": {
+    "title": "生成時の変数環境と結びつく",
+    "mermaid": "flowchart TD\n N0[\"関数を生成\"]\n N1[\"その時点の変数環境と結びつく\"]\n N2[\"関数が後から実行される\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "903e90cbd4ae815d0025c0d218a67b8ea391b987b4c34aa451c2dfb84b7cfb6d": {
+    "title": "イベントリスナーからデータへの参照",
+    "mermaid": "flowchart TD\n N0[\"EventListener\"]\n N1[\"handler\"]\n N2[\"巨大なデータ\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "fdc9f57c63ecd8674abd8e7dfacc98608bae80e0a7800533482c8664305252df": {
+    "title": "コールバックがオブジェクトを保持する",
+    "mermaid": "flowchart TD\n N0[\"EventListener\"]\n N1[\"callback\"]\n N2[\"largeObject\"]\n N0 --> N1\n N1 --> N2"
+  },
+  "e33c9426203d760c097282eba18a4559cb633695be5acef7c443a2d18f6ad904": {
+    "title": "コールスタックの変化",
+    "mermaid": "flowchart LR\n subgraph A[\"① second() を実行\"]\n A1[\"second()\"]\n end\n subgraph B[\"② first() を呼び出す\"]\n direction TB\n B1[\"first()：実行中\"] --- B2[\"second()：待機中\"]\n end\n subgraph C[\"③ first() が終了\"]\n C1[\"second()：実行再開\"]\n end\n A --> B --> C"
+  },
+  "754d7e7fde4e1d92beb22bea43b9f607dbe1cab4547bc72363f091a7644a5fc0": {
+    "title": "タイマー登録からコールバック実行まで",
+    "mermaid": "sequenceDiagram\n participant J as JavaScript\n participant T as ブラウザのタイマー機能\n participant Q as タスクキュー\n Note over J: console.log(A)\n J->>T: setTimeout() を登録\n Note over J: console.log(C) を実行\n T->>Q: 1秒以上経過後にタスクを登録\n Note over Q: 実行可能になるまで待機\n Q-->>J: コールバックを実行"
+  },
+  "d957485060970340a6adcce16cb5f45b28d393d81464dd2ad14904798a5f0538": {
+    "title": "プロセスごとに分かれるメモリ空間",
+    "mermaid": "flowchart LR\n subgraph A[\"プロセスA：メモリ空間\"]\n T1[\"Thread 1\"]\n T2[\"Thread 2\"]\n end\n subgraph B[\"プロセスB：別のメモリ空間\"]\n T3[\"Thread 1\"]\n end"
+  },
+  "c0593a67cc6e7f24f339c75173561f6d786659a265485cdfc9ae5a4aca46ea97": {
+    "title": "スレッド共有とプロセス分離",
+    "mermaid": "flowchart TD\n A[\"同じプロセスのスレッド\"] --> A1[\"メモリを共有しやすい\"] --> A2[\"データの受け渡しが速い\"] --> A3[\"ただし競合が起きる可能性がある\"]\n B[\"異なるプロセス\"] --> B1[\"メモリが原則として分離される\"] --> B2[\"障害や不正アクセスの影響を隔離しやすい\"] --> B3[\"通信にはIPCなどが必要\"]"
+  },
+  "e1b6900fbcc1b32a426311dae5075db1770fc7698aaaff37b99e7b9532f42325": {
+    "title": "1つのコアがスレッドを切り替える",
+    "mermaid": "flowchart LR\n subgraph C[\"CPU Core 1：時間は左から右へ\"]\n direction LR\n A1[\"Thread A\"] --> B[\"Thread B\"] --> A2[\"Thread A\"] --> D[\"Thread C\"]\n end"
+  },
+  "d3c0445f70b02dbab0b21ae3cd98c8834e3e57c725c98ea72d11c5df0bc4f3aa": {
+    "title": "2つのコアが並列に処理する",
+    "mermaid": "flowchart LR\n subgraph C1[\"Core 1：時間は左から右へ\"]\n direction LR\n A1[\"時刻1：A\"] --> A2[\"時刻2：A\"] --> A3[\"時刻3：A\"] --> A4[\"時刻4：A\"]\n end\n subgraph C2[\"Core 2：同じ時間帯にBを実行\"]\n direction LR\n B1[\"時刻1：B\"] --> B2[\"時刻2：B\"] --> B3[\"時刻3：B\"] --> B4[\"時刻4：B\"]\n end"
+  },
+  "e9e0157b46d46b9937da833dc0401f00d65b37ed44966d900626ab66d81168fb": {
+    "title": "Chromeのプロセスとスレッド",
+    "mermaid": "flowchart TD\n C[\"Chrome\"] --> B[\"Browser Process\"]\n B --> BM[\"タブ管理・権限管理など\"]\n C --> R[\"Renderer Process\"]\n R --> M[\"Main Thread\"]\n M --> J[\"JavaScript実行\"]\n M --> D[\"DOM操作\"]\n M --> S[\"Style/Layoutなど\"]\n R --> CO[\"Compositor Threadなど\"]\n C --> G[\"GPU Process\"]\n G --> GP[\"GPU関連の処理\"]\n C --> O[\"その他のプロセス\"]"
+  },
+  "7cf4972306a3aaf9ff7d3a028f14291d58497475b69e20632d9e5db8f4e76848": {
+    "title": "メインスレッドとWorkerのメッセージ交換",
+    "mermaid": "sequenceDiagram\n participant M as Main Thread\n participant W as Worker Thread\n Note over M: UI操作・イベント処理\n M->>W: postMessage()\n Note over W: 重い計算\n W-->>M: postMessage(result)\n Note over M: 結果を受け取る"
+  },
+  "2a9ea117dfd1a8f2d52d46a3463bd99cfa554105a87a77fbdfab8942d4d7b20e": {
+    "title": "スレッド共有と別のアドレス空間",
+    "mermaid": "flowchart TD\n B[\"ブラウザ（概念図）\"] --> A[\"プロセスA\"]\n A --> T1[\"スレッド1\"]\n A --> T2[\"スレッド2\"]\n T1 --> S[\"メモリの一部を共有\"]\n T2 --> S\n B --> P[\"プロセスB：別のアドレス空間\"]"
+  }
+}

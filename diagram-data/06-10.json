@@ -1,0 +1,146 @@
+{
+  "c00c6bc5a7884fc515180ece10e83fc92297755ca1984315c96346fbb49bdaa5": {
+    "title": "インクリメントの3段階",
+    "mermaid": "flowchart TD\nn0[\"countの値を読み取る\"]\nn1[\"1を加算する\"]\nn2[\"結果を書き戻す\"]\nn0 --> n1 --> n2"
+  },
+  "a6f2aa5bdb3f77dcaf56a511d62512eb2334e7353c36e9b72d4b771352e2e5da": {
+    "title": "更新が失われる競合状態",
+    "mermaid": "sequenceDiagram\nparticipant A as Thread A\nparticipant C as count\nparticipant B as Thread B\nNote over A,B: 初期値 count = 0\nA->>C: 値を読む\nC-->>A: 0\nB->>C: 値を読む\nC-->>B: 0\nNote over A: 0 + 1 = 1\nNote over B: 0 + 1 = 1\nA->>C: 1を書き込む\nB->>C: 1を書き込む\nNote over A,B: 最終結果 count = 1（期待は2）"
+  },
+  "becc77e837d486ec0202091653ff1dc1fbd3388916aaa3661539fd0c4009b040": {
+    "title": "同じ値の読み取りによる更新の消失",
+    "mermaid": "sequenceDiagram\nparticipant A as Thread A\nparticipant C as count\nparticipant B as Thread B\nNote over A,B: 初期値 count = 0\nA->>C: 値を読む\nC-->>A: 0\nB->>C: 値を読む\nC-->>B: 0\nNote over A: 0 + 1 = 1\nNote over B: 0 + 1 = 1\nA->>C: 1を書き込む\nB->>C: 1を書き込む\nNote over A,B: 最終結果 count = 1（期待は2）"
+  },
+  "66f630a94833f1c29e544808432c33418f78856fc41682ca9005a0ff19a5dbcb": {
+    "title": "ロックによる更新の直列化",
+    "mermaid": "sequenceDiagram\nparticipant A as Thread A\nparticipant L as ロック\nparticipant B as Thread B\nA->>L: ロック取得\nB->>L: ロック取得を試みる\nNote over B: Aの解除まで待機\nNote over A: countを読む → 1を足す → 書き戻す\nA->>L: ロック解除\nL-->>B: ロック取得\nNote over B: countを更新\nB->>L: ロック解除"
+  },
+  "dbc54370b47a8d856cb0ad2682809d4f1be73c0fae9bb35af38f0045535449e0": {
+    "title": "検索レスポンスの到着順による競合",
+    "mermaid": "sequenceDiagram\nparticipant U as 検索画面\nparticipant R as React検索\nparticipant V as Vue検索\nU->>R: ① Reactで検索開始\nNote over R: サーバーの応答が遅い\nU->>V: ② Vueで検索開始\nV-->>U: Vueの検索結果\nNote over U: setResults(Vue)\nR-->>U: Reactの検索結果\nNote over U: setResults(React)で上書き"
+  },
+  "fb24649a8735ec75f0ac1aa7ce8fe606796d6abb3bf0155443dec13fd1656429": {
+    "title": "ロック解除を待って取得する",
+    "mermaid": "sequenceDiagram\nparticipant A as Thread A\nparticipant L as ロック\nparticipant B as Thread B\nA->>L: ロック取得\nNote over A: データ更新\nNote over B: 待機\nA->>L: ロック解除\nB->>L: ロック取得"
+  },
+  "a63d142a3569acb377ce62633c3f8ebec88135cc01fa820a209b93480ce546e6": {
+    "title": "2つのロックの循環待ち",
+    "mermaid": "flowchart LR\nA[\"Thread A<br/>ロックXを取得\"] -->|\"ロックYが欲しい<br/>Bの解除を待つ\"| B[\"Thread B<br/>ロックYを取得\"]\nB -->|\"ロックXが欲しい<br/>Aの解除を待つ\"| A\nA -.-> C[\"永久に進めない\"]\nB -.-> C"
+  },
+  "863c36f625cb7b72909e7be464df09e1d977c7668db359b974e632aac9599022": {
+    "title": "口座間の送金処理",
+    "mermaid": "flowchart TD\nn0[\"銀行口座Aから1万円を引く\"]\nn1[\"銀行口座Bに1万円を加える\"]\nn0 --> n1"
+  },
+  "0b332a282d9bfac126c1f0600c1aa6cc75b28a56ec738ee8d0a5a83b915748eb": {
+    "title": "全スレッドでロックの取得順を統一",
+    "mermaid": "flowchart TD\nn0[\"すべてのスレッド\"]\nn1[\"ロックXを取得\"]\nn2[\"ロックYを取得\"]\nn0 --> n1 --> n2"
+  },
+  "47222d5b2e0b8502782914446d9ae748744c672b23747bd3a40fa5d5496f1bad": {
+    "title": "Promiseの循環待ち",
+    "mermaid": "flowchart LR\nA[\"taskA\"] -->|\"待つ\"| PB[\"promiseB\"]\nPB -->|\"解決するのは\"| B[\"taskB\"]\nB -->|\"待つ\"| PA[\"promiseA\"]\nPA -->|\"解決するのは\"| A"
+  },
+  "3a9e85051e1d4accb3e8a4ac40b3f9b8dd960d24707edc5f460327e60ef9f318": {
+    "title": "初期化処理の循環依存",
+    "mermaid": "flowchart LR\nA[\"認証情報の取得\"] -->|\"初期化を待つ\"| B[\"APIクライアントの初期化\"]\nB -->|\"取得完了を待つ\"| A"
+  },
+  "efe448bc1011b0217fe4803122a7071234539775515416fffaa76134c78c4a50": {
+    "title": "循環した待ち関係",
+    "mermaid": "flowchart LR\nA[\"A\"] --> B[\"B\"] --> C[\"C\"] --> A"
+  },
+  "a5d2a05adba2dfad0caadf99721f126fc6adc2f5e3fca881ba87588c5df960d8": {
+    "title": "異なるロック取得順",
+    "mermaid": "flowchart TD\nsubgraph A[\"Thread A\"]\na1[\"ロックX取得\"] --> a2[\"ロックY取得\"]\nend\nsubgraph B[\"Thread B\"]\nb1[\"ロックY取得\"] --> b2[\"ロックX取得\"]\nend"
+  },
+  "34e0488bffb8eca906038d7c47a8607bc5cc7950e77064616c327e28ff3af4a8": {
+    "title": "処理同士の循環した待ち",
+    "mermaid": "flowchart LR\nA[\"処理A<br/>Xを取得\"] -->|\"Yを待つ\"| B[\"処理B<br/>Yを取得\"]\nB -->|\"Xを待つ\"| A"
+  },
+  "d235e4149486813871b52ed55fe6caf37fa6f8ba7efd42c3a060dcf4ff24a67c": {
+    "title": "プロセスごとに独立した空間とデータ",
+    "mermaid": "flowchart TD\nA[\"プロセスA<br/>0x1000：A<br/>0x2000：B<br/>0x3000：C\"]\nB[\"プロセスB<br/>0x1000：X<br/>0x2000：Y<br/>0x3000：Z\"]\nA ~~~ B"
+  },
+  "028870a69a795e8179c85c1b2d7e0f025066ec709efa262468222d3e886854a2": {
+    "title": "同じ仮想アドレスを異なる物理アドレスへ変換",
+    "mermaid": "flowchart TD\nA[\"プロセスA<br/>仮想アドレス 0x1000\"] --> AT[\"アドレス変換\"] --> AP[\"物理アドレス 0x5000\"]\nB[\"プロセスB<br/>仮想アドレス 0x1000\"] --> BT[\"アドレス変換\"] --> BP[\"物理アドレス 0x9000\"]"
+  },
+  "397c4e12ea49bcaf000ff6f35b90db8ed262b86345ff3ad2cb57cd54c55bbf15": {
+    "title": "MMUによるアドレス変換",
+    "mermaid": "flowchart TD\nC[\"CPU\"] -->|\"仮想アドレス\"| M[\"MMU<br/>ページテーブルを利用してアドレスを変換\"] --> R[\"物理メモリ（RAM）\"]"
+  },
+  "1d0a2ee693d18bbe15a514aec80a2e15cad7d3aaa7d95d0da943bb58d5892e02": {
+    "title": "仮想ページと物理メモリの対応付け",
+    "mermaid": "flowchart LR\nsubgraph V[\"仮想メモリ：上からの順序\"]\nv0[\"Page 0\"]\nv1[\"Page 1\"]\nv2[\"Page 2\"]\nv3[\"Page 3\"]\nend\nsubgraph P[\"物理メモリ：上からの順序\"]\np2[\"位置0：Page 2\"]\np0[\"位置1：Page 0\"]\np3[\"位置2：Page 3\"]\np1[\"位置3：Page 1\"]\nend\nv0 --> p0\nv1 --> p1\nv2 --> p2\nv3 --> p3"
+  },
+  "0d7133c6f515bb4c5db9134433b9947cff9599b2a40018e2394be57f2a165a66": {
+    "title": "JavaScriptから物理メモリまで",
+    "mermaid": "flowchart TD\nJ[\"JavaScript\"] --> E[\"V8などのJSエンジン\"]\nE -->|\"オブジェクトを管理\"| H[\"JavaScriptヒープ\"]\nH -->|\"OSのメモリ管理を利用\"| V[\"プロセスの仮想メモリ空間\"]\nV -->|\"MMUによるアドレス変換\"| P[\"物理メモリ\"]"
+  },
+  "d6c69f28c81aa749940e5f0193b9b23e57e1df05634419948ba46f24b98e020d": {
+    "title": "CPU・OS・JavaScriptエンジンの役割",
+    "mermaid": "flowchart TD\nCPU[\"CPU\"] --- C[\"プログラムの命令を実行\"]\nOS[\"OS\"] --- P[\"プロセスとスレッドを管理\"]\nOS --- V[\"仮想メモリを管理\"]\nV --> J[\"JavaScriptエンジン\"]\nJ --- S[\"コールスタック\"]\nJ --- H[\"ヒープ\"]\nJ --- G[\"GC\"]"
+  },
+  "b2348d3bc8745edfc5df3cefc6880b98ffaa29f3829afa5b5556c32d11ea6e7f": {
+    "title": "プロセス別のアドレス対応の概念例",
+    "mermaid": "flowchart LR\nA[\"プロセスA<br/>仮想アドレス 100\"] --> AP[\"物理アドレス 500\"]\nB[\"プロセスB<br/>仮想アドレス 100\"] --> BP[\"物理アドレス 900\"]\nN[\"数字は対応関係を示す概念例\"]"
+  },
+  "b48af12c4eacda13be069855e4b589a60c134f12764ba066af3f027dde878af8": {
+    "title": "メモリ階層の容量とアクセス速度",
+    "mermaid": "flowchart TD\nn0[\"CPUレジスタ<br/>容量：非常に小さい／速度：非常に速い\"]\nn1[\"L1キャッシュ\"]\nn2[\"L2キャッシュ\"]\nn3[\"L3キャッシュ\"]\nn4[\"メインメモリ（RAM）<br/>容量：大きい／速度：比較的遅い\"]\nn5[\"SSDなどのストレージ\"]\nn0 --> n1 --> n2 --> n3 --> n4 --> n5"
+  },
+  "07db299bbb14405ccca892b006690ddcecbed03d6f48dd906cc31a3f455f2cf8": {
+    "title": "キャッシュライン単位のデータ読み込み",
+    "mermaid": "flowchart TD\nn0[\"RAM：10｜20｜30｜40｜50｜…\"]\nn1[\"キャッシュライン\"]\nn2[\"CPUキャッシュ\"]\nn0 --> n1 --> n2"
+  },
+  "c51de7c06f37b4acaa4f4afe7e3a0143f86c5f6e232d3565fc447875010d7960": {
+    "title": "連続したデータ配置",
+    "mermaid": "flowchart LR\nsubgraph A[\"連続する領域\"]\nn1[\"10\"] --- n2[\"20\"] --- n3[\"30\"] --- n4[\"40\"] --- n5[\"50\"] --- n6[\"60\"]\nend"
+  },
+  "b3cd56b76bf2c1553e151b762881300451c1312af51beb28832682d31b33653b": {
+    "title": "参照をたどるデータ配置",
+    "mermaid": "flowchart LR\nn0[\"10\"]\nn1[\"20\"]\nn2[\"30\"]\nn3[\"40\"]\nn0 --> n1 --> n2 --> n3"
+  },
+  "f49d9ff75bf40f53ff8c3d572b454bcaaa150c6baa4eb495c5cb0a8da08345de": {
+    "title": "実際の実行速度を決める要素",
+    "mermaid": "flowchart TD\nA[\"アルゴリズム\"] --- C[\"計算量<br/>O(1), O(log n), O(n)\"]\nA --> D[\"データ構造\"]\nD --- T[\"Array／Map／TypedArray\"]\nD --> M[\"メモリ上のデータ配置\"] --> H[\"CPUキャッシュ\"] --> S[\"実際の実行速度\"]"
+  },
+  "b053a752238a76d1433cd6a5667f5d99585a6918d33a0d7795db1151f60302a0": {
+    "title": "CPUキャッシュからRAMまでの階層",
+    "mermaid": "flowchart LR\nC[\"CPU\"] --> L1[\"L1<br/>小さく高速\"] --> L2[\"L2\"] --> L3[\"L3\"] --> R[\"RAM<br/>大容量・相対的に低速\"]\nN[\"階層の構成・共有範囲はCPUによって異なる\"]"
+  },
+  "848d087e7cce9598ba640f511055da99f5e4c8b2cf8c2f36b9265a974798e02d": {
+    "title": "配列の連続したメモリ配置",
+    "mermaid": "flowchart LR\nsubgraph M[\"メモリ上の配置\"]\na[\"アドレス1000<br/>値10\"] --- b[\"アドレス1004<br/>値20\"] --- c[\"アドレス1008<br/>値30\"] --- d[\"アドレス1012<br/>値40\"]\nend"
+  },
+  "33a1926af73892da92222358ba7231eb169d65ffc1c87758712fd651dc03a5b0": {
+    "title": "要素数3・容量4の配列",
+    "mermaid": "flowchart LR\nsubgraph A[\"length = 3／capacity = 4\"]\na[\"10\"] --- b[\"20\"] --- c[\"30\"] --- d[\"空き領域\"]\nend"
+  },
+  "900c7fa62605842f16b3675f504fcc68548f3f42b2ab7e7e87746d9f4c6f751d": {
+    "title": "容量まで要素を格納した配列",
+    "mermaid": "flowchart LR\nsubgraph A[\"length = 4／capacity = 4\"]\na[\"10\"] --- b[\"20\"] --- c[\"30\"] --- d[\"40\"]\nend"
+  },
+  "df6a3226bc801c0f2083521b199d62b07d14fe7da5e41ef6f00709f1d2e0c67d": {
+    "title": "動的配列の容量拡張",
+    "mermaid": "flowchart TD\nn0[\"① 元の領域<br/>capacity = 4<br/>10｜20｜30｜40\"]\nn1[\"② 新しい領域を確保<br/>capacity = 8<br/>空き｜空き｜空き｜空き｜空き｜空き｜空き｜空き\"]\nn2[\"③ 既存データをコピーして追加<br/>10｜20｜30｜40｜50｜空き｜空き｜空き\"]\nn0 --> n1 --> n2"
+  },
+  "95f72f244a900cdfba88b9ba06631089709c3f55ac1a0352fc25784f83f8e639": {
+    "title": "倍増する配列の容量",
+    "mermaid": "flowchart LR\nn0[\"容量1\"]\nn1[\"容量2\"]\nn2[\"容量4\"]\nn3[\"容量8\"]\nn4[\"容量16\"]\nn5[\"容量32\"]\nn0 --> n1 --> n2 --> n3 --> n4 --> n5"
+  },
+  "474371163e9d298d8724adb579ec5acde0df45efa8b47ffe403f10002995a2f2": {
+    "title": "Int32Arrayの16バイトの配置",
+    "mermaid": "flowchart LR\nsubgraph A[\"合計16バイト\"]\na[\"10<br/>4バイト\"] --- b[\"20<br/>4バイト\"] --- c[\"30<br/>4バイト\"] --- d[\"40<br/>4バイト\"]\nend"
+  },
+  "b4bbe010998c73cbc210066c819a357a414bbb483082989914d52a25b70fef20": {
+    "title": "pushと配列コピーの処理の違い",
+    "mermaid": "flowchart TD\nP[\"push()\"] --> PE[\"既存の配列に要素を追加\"]\nS[\"[...prev, 4]\"] --> N[\"新しい配列を作成\"] --> C[\"既存の要素をコピー\"] --> A[\"新しい要素を追加\"]"
+  },
+  "3373c03b86bc3b04ca38f92c7602d6652990517e8cd9949ef7d55cf5e7a21461": {
+    "title": "キャッシュから動的配列の償却計算量まで",
+    "mermaid": "flowchart TD\nn0[\"CPUキャッシュ\"]\nn1[\"メモリ配置が性能に影響する\"]\nn2[\"配列は連続したデータを効率よく扱える\"]\nn3[\"しかし要素数が増えると容量が足りなくなる\"]\nn4[\"動的配列は容量を拡張して対応する\"]\nn5[\"拡張時にはコピーコストが発生する\"]\nn6[\"償却計算量で操作全体の効率を評価する\"]\nn0 --> n1 --> n2 --> n3 --> n4 --> n5 --> n6"
+  },
+  "3f9ee8a11ca2ffc7a87af1972781bb10d1af2f96dfc81d019ab0a4b6d46eecc7": {
+    "title": "追加と容量不足による拡張",
+    "mermaid": "flowchart TD\nn0[\"要素数3／容量4<br/>10｜20｜30｜空き\"]\nn1[\"追加<br/>10｜20｜30｜40\"]\nn2[\"容量不足で拡張<br/>10｜20｜30｜40｜50｜空き｜空き｜空き\"]\nn0 --> n1 --> n2"
+  }
+}
