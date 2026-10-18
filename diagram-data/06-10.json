@@ -56,8 +56,8 @@
     "mermaid": "flowchart LR\nA[\"処理A<br/>Xを取得\"] -->|\"Yを待つ\"| B[\"処理B<br/>Yを取得\"]\nB -->|\"Xを待つ\"| A"
   },
   "d235e4149486813871b52ed55fe6caf37fa6f8ba7efd42c3a060dcf4ff24a67c": {
-    "title": "プロセスごとに独立した仮想アドレス空間",
-    "mermaid": "flowchart TD\nA[\"プロセスA<br/>0x1000：データA<br/>0x2000：データB<br/>0x3000：データC\"]\nB[\"プロセスB<br/>0x1000：データX<br/>0x2000：データY<br/>0x3000：データZ\"]\nA ~~~ B"
+    "title": "プロセスごとに独立した空間とデータ",
+    "mermaid": "flowchart TD\nA[\"プロセスA<br/>0x1000：A<br/>0x2000：B<br/>0x3000：C\"]\nB[\"プロセスB<br/>0x1000：X<br/>0x2000：Y<br/>0x3000：Z\"]\nA ~~~ B"
   },
   "028870a69a795e8179c85c1b2d7e0f025066ec709efa262468222d3e886854a2": {
     "title": "同じ仮想アドレスを異なる物理アドレスへ変換",

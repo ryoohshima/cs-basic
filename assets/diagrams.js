@@ -2,6 +2,8 @@
 mermaid.initialize({
   startOnLoad: false,
   securityLevel: 'strict',
+  htmlLabels: false,
+  markdownAutoWrap: false,
   theme: 'base',
   fontFamily: 'system-ui, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif',
   themeVariables: {
