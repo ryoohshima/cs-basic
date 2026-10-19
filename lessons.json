@@ -253,5 +253,52 @@
         "バージョン変更、削除、存在しないIDなどが考えられます。条件付き更新により、取得時から変わった行への無条件な上書きを防げます。"
       ]
     ]
+  },
+  {
+    "title": "MVCCとスナップショット",
+    "group": "データベース",
+    "goal": "複数バージョンとスナップショットによる読み取り、独立性レベルの違いを説明できる",
+    "body": "<h4>CS基礎 5分学習｜第16回</h4>\n<h4>① 今日のCSテーマ：MVCC — なぜデータベースは更新中でもデータを読み取れるのか？</h4>\n<p><strong>学習時間：約5分｜分野：データベース・並行処理</strong></p>\n<p>前回はトランザクションとACIDを学びました。</p>\n<p>特に重要だったのが、**Isolation（独立性）**です。</p>\n<p>複数のユーザーが同時にデータを操作しても、互いの処理によって不正な結果が生まれないようにする必要があります。</p>\n<p>しかし、ここで疑問が生まれます。</p>\n<blockquote>\n<p>誰かがデータを更新している間、ほかの人は更新が終わるまで待たなければならないのでしょうか？</p>\n</blockquote>\n<p>必ずしもそうではありません。</p>\n<p>今回は、この問題を解決する代表的な仕組みである **MVCC（Multi-Version Concurrency Control：多版型同時実行制御）**を学びます。</p>\n<hr>\n<h4>② 3分で読める本質的な解説</h4>\n<h4>1. データが1つしかなかったら？</h4>\n<p>予約管理システムを考えます。</p>\n<p>現在、予約ID <code>101</code> のステータスは <code>pending</code>（未確定）です。</p>\n<pre><code>reservations\n┌─────┬─────────┐\n│ id  │ status  │\n├─────┼─────────┤\n│ 101 │ pending │\n└─────┴─────────┘\n</code></pre>\n<p>ここで2つのトランザクションが動きます。</p>\n<p><strong>Transaction A：</strong> 予約を確定する。</p>\n<p><strong>Transaction B：</strong> 予約情報を読み取る。</p>\n<p>仮にデータが1つしかなく、更新中のデータを安全に読めない仕組みだとしたら、どうなるでしょうか？</p>\n<pre><code>時間 ↓\n\nTransaction A          Transaction B\n     │                       │\n     ├─ 更新開始             │\n     │                       │\n     │                  読み取り要求\n     │                       │\n     │                    待機...\n     │                       │\n     ├─ COMMIT               │\n     │                       │\n     │                  読み取り成功\n</code></pre>\n<p>読み取り処理が更新処理の終了を待つことになります。</p>\n<p>小規模なシステムなら問題にならないかもしれません。</p>\n<p>しかし、大量のユーザーが利用するWebアプリでは、読み取りのたびに待機が発生すると性能が低下します。</p>\n<p>では、どうすればよいのでしょうか？</p>\n<h4>2. MVCCはデータの古いバージョンを残す</h4>\n<p>MVCCの基本的な発想はシンプルです。</p>\n<p><strong>データを更新するとき、古いバージョンをすぐに消さず、必要な間は保持しておく。</strong></p>\n<p>例えば、次のような状態を考えます。</p>\n<pre><code>予約ID：101\n\n旧バージョン\n┌────────────────┐\n│ status: pending│\n└────────────────┘\n\n新バージョン\n┌──────────────────┐\n│ status: confirmed│\n└──────────────────┘\n</code></pre>\n<p>Transaction Aが予約を更新している間、Transaction Bは旧バージョンを読み取れます。</p>\n<pre><code>時間 ↓\n\nTransaction A          Transaction B\n     │                       │\n     ├─ 更新開始             │\n     │                       │\n     ├─ 新バージョン作成     │\n     │                       │\n     │                  読み取り要求\n     │                       │\n     │                  旧バージョンを読む\n     │                       │\n     ├─ COMMIT               │\n</code></pre>\n<p>これなら、Transaction BはTransaction Aの更新完了を待たずに読み取りを進められます。</p>\n<p>ここがMVCCの大きな特徴です。</p>\n<p>ただし、すべての読み取りが必ず待機なしになるわけではありません。明示的なロックやDBの操作によっては待機が発生します。</p>\n<h4>3. どのバージョンを読めばよいのか？</h4>\n<p>ここで新しい疑問が出てきます。</p>\n<p>古いバージョンと新しいバージョンが存在するなら、DBはどちらを返すのでしょうか？</p>\n<p>そこで登場するのが**スナップショット（Snapshot）**です。</p>\n<p>スナップショットは、ある時点でどの変更が確定しているかという情報を基に、トランザクションから見えるデータを決定する仕組みです。</p>\n<p>例えば、次の順番で処理されたとします。</p>\n<pre><code>10:00 予約ステータス = pending\n\n10:01 Transaction Bが読み取り開始\n      → pending が見える\n\n10:02 Transaction Aが更新\n      pending → confirmed\n\n10:03 Transaction AがCOMMIT\n\n10:04 Transaction Bが再度読み取り\n</code></pre>\n<p>10:04の結果は、独立性レベルによって変わります。</p>\n<p><strong>Read Committedの場合</strong></p>\n<p>一般的にはSQL文ごとに新しいスナップショットを取得します。</p>\n<p>そのため、2回目の読み取りでは <code>confirmed</code> が見える可能性があります。</p>\n<p><strong>Repeatable Readの場合</strong></p>\n<p>PostgreSQLでは、トランザクション内の最初の通常の問い合わせ時点のスナップショットを使い続けます。</p>\n<p>そのため、Transaction Bは再度 <code>pending</code> を読み取ります。</p>\n<p>つまり、<strong>データベースは実際に保存されている最新の値を、すべてのトランザクションへ無条件に返しているわけではない</strong>のです。</p>\n<h4>4. MVCCにもコストがある</h4>\n<p>古いバージョンを残すということは、保存領域が必要になるということです。</p>\n<p>また、不要になった古いバージョンを整理する仕組みも必要です。</p>\n<p>例えばPostgreSQLでは、<code>VACUUM</code> が不要な行バージョンの回収に関わります。</p>\n<p>ここでも重要なトレードオフがあります。</p>\n<pre><code>複数バージョンを保持\n        ↓\n読み取りと書き込みの競合を減らせる\n        ↓\n同時実行性能が向上\n        │\n        └─ 一方で\n              ↓\n       保存領域や管理コストが増える\n</code></pre>\n<p>これは、以前学んだCPUキャッシュやB-treeと共通する考え方です。</p>\n<p><strong>性能を高めるために、追加のメモリやストレージを使うことがある</strong>のです。</p>\n<hr>\n<h4>③ フロントエンド実務ではどこに現れるか？</h4>\n<h4>予約一覧と予約詳細で表示が異なるケース</h4>\n<p>例えば、予約管理画面を考えます。</p>\n<p>スタッフAが予約一覧を表示しました。</p>\n<pre><code>const reservations = await fetch(&quot;/api/reservations&quot;);\n</code></pre>\n<p>表示されたデータは次のとおりです。</p>\n<pre><code>{\n  id: 101,\n  status: &quot;pending&quot;\n}\n</code></pre>\n<p>その直後、別のスタッフが予約を確定しました。</p>\n<pre><code>スタッフA                   スタッフB\n    │                           │\n予約一覧を取得                  │\n    │                           │\npending と表示                  │\n    │                      予約を確定\n    │                           │\n    │                      DB更新・COMMIT\n    │                           │\n予約詳細を開く                  │\n    │                           │\nconfirmed と表示                │\n</code></pre>\n<p>この表示の違いは、必ずしもバグではありません。</p>\n<p>2つのAPIリクエストが異なる時点のデータを読み取っているからです。</p>\n<p>ただし、ここは区別が必要です。</p>\n<p><strong>MVCCが管理しているのはDBトランザクションから見えるデータであり、Reactの画面状態を自動的に同期する仕組みではありません。</strong></p>\n<p>フロントエンド側では、用途に応じて次のような対応が必要になります。</p>\n<ul>\n<li>TanStack Queryなどによるキャッシュの再検証</li>\n<li>更新後の再取得</li>\n<li>ポーリング</li>\n<li>WebSocketなどによる更新通知</li>\n</ul>\n<p>また、複数のGraphQL Queryを1つの画面で利用する場合、それらが同じDBスナップショットを参照しているとは限りません。</p>\n<p>同じタイミングでAPIを呼び出したとしても、バックエンドで別々のトランザクションとして実行されれば、異なる時点のデータが返る可能性があります。</p>\n<h4>MVCCと楽観的ロックは何が違う？</h4>\n<p>前回学んだ楽観的ロックを思い出してください。</p>\n<pre><code>UPDATE reservations\nSET\n  status = &#x27;confirmed&#x27;,\n  version = version + 1\nWHERE\n  id = 101\n  AND version = 3;\n</code></pre>\n<p>これは、取得時からデータが変更されていないか確認し、古い情報による上書きを防ぐ方法でした。</p>\n<p>一方、MVCCは、複数のバージョンを管理してトランザクションごとの読み取りを制御する仕組みです。</p>\n<table>\n<thead>\n<tr>\n<th>仕組み</th>\n<th>主な目的</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>MVCC</td>\n<td>トランザクションから見えるデータを管理し、同時実行を効率化する</td>\n</tr>\n<tr>\n<td>楽観的ロック</td>\n<td>古い情報に基づく更新競合を検出する</td>\n</tr>\n</tbody>\n</table>\n<p>両者は対立する仕組みではありません。</p>\n<p>実際のWebアプリでは、<strong>MVCCを利用するDB上で、アプリケーションが楽観的ロックを実装する</strong>こともあります。</p>\n<hr>\n<h4>④ 理解確認問題</h4>\n<h4>Q1. MVCCが必要な理由</h4>\n<p>Transaction Aがある予約データを更新しています。</p>\n<p>Transaction Bは同じ予約データを読み取ろうとしています。</p>\n<p>MVCCを利用するDBでは、Transaction BがTransaction Aの更新完了を待たずにデータを読み取れる場合があります。</p>\n<p><strong>なぜ、そのようなことが可能なのでしょうか？</strong></p>\n<h4>Q2. スナップショットと独立性レベル</h4>\n<p>次の状況を考えてください。</p>\n<pre><code>① Transaction Bが予約を読む\n   → pending\n\n② Transaction Aが予約を更新\n   → confirmed\n\n③ Transaction AがCOMMIT\n\n④ Transaction Bが再び予約を読む\n   → ？？？\n</code></pre>\n<p>PostgreSQLで、Transaction Bが読み取り専用であり、途中で更新しない場合を考えます。</p>\n<p><strong>A.</strong> Read Committedでは、④で何が返るでしょうか？</p>\n<p><strong>B.</strong> Repeatable Readでは、④で何が返るでしょうか？</p>\n<details><summary>解答を見る</summary><p><strong>Q1</strong></p>\n<p>MVCCでは、データの古いバージョンを必要な間保持しています。</p>\n<p>そのため、更新中の新しいバージョンではなく、Transaction Bから見える旧バージョンを読み取れます。</p>\n<p><strong>Q2</strong></p>\n<p>A. Read Committedでは、2回目のSQL文が新しいスナップショットを取得するため、通常は <code>confirmed</code> が返ります。</p>\n<p>B. Repeatable Readでは、同じトランザクション内でスナップショットが維持されるため、<code>pending</code> が返ります。</p>\n</details><hr>\n<h4>今日のまとめ</h4>\n<p>今回の核心は、<strong>データベースは複数のバージョンを管理することで、更新処理と読み取り処理を効率よく並行実行できる</strong>ということです。</p>\n<p>ここまでの3回を整理しましょう。</p>\n<pre><code>第14回：B-tree\n   │\n   └─ データをどう高速に探すか？\n          │\n          ▼\n第15回：トランザクション\n   │\n   └─ 複数の操作をどう安全に実行するか？\n          │\n          ▼\n第16回：MVCC\n   │\n   └─ 複数のトランザクションに\n      どの時点のデータを見せるか？\n</code></pre>\n<p>この3つを理解すると、データベースが単なるデータ保存場所ではなく、検索・整合性・並行処理を高度に制御するシステムであることが見えてきます。</p>\n<p><strong>次回のテーマ：トランザクションログとWAL — なぜデータベースは突然電源が落ちても復旧できるのか？</strong></p>\n<p>次はACIDのDurability（永続性）に注目します。更新のたびにすべてのデータを書き直すわけではないのに、なぜ確定した変更を守れるのか。その内部構造を学びます。</p>\n",
+    "practice": "<p>補足：本文の予約一覧・予約詳細の例では、DBの可視性と画面の再取得を区別して確認してください。</p>",
+    "questions": [
+      [
+        "補足の確認：MVCCだけでReactの表示は自動更新されますか？",
+        "されません。DBトランザクションの可視性と画面状態は別です。本文で示した再取得・キャッシュの再検証・ポーリング・更新通知などを用途に応じて使います。"
+      ]
+    ],
+    "diagrams": {
+      "c508642f9ee0c4a3f18535473c02a562fa05cb0c4b0666d37dc6a4e392d27a52": {
+        "title": "更新の完了を待つ読み取り",
+        "mermaid": "sequenceDiagram\nparticipant A as Transaction A\nparticipant B as Transaction B\nA->>A: 更新開始\nB->>B: 読み取り要求\nNote over B: 更新完了まで待機\nA->>A: COMMIT\nB->>B: 読み取り成功"
+      },
+      "1a363168a1b9877c406af0e5643b7463060811573b71dfbf33d774db279facfe": {
+        "title": "予約101の旧バージョンと新バージョン",
+        "mermaid": "flowchart TD\nR[\"予約ID：101\"] --> O[\"旧バージョン：pending\"]\nR --> N[\"新バージョン：confirmed\"]"
+      },
+      "a0dacdf608dd7cb7a0b032aa9712df97eb5e2cbce9b520ddae9ecc43d3d8e25c": {
+        "title": "MVCCでは見える旧バージョンを読める",
+        "mermaid": "sequenceDiagram\nparticipant A as Transaction A\nparticipant B as Transaction B\nA->>A: 更新開始\nA->>A: 新バージョン作成\nB->>B: 読み取り要求\nB->>B: 見える旧バージョンを読む\nA->>A: COMMIT"
+      },
+      "abd3bc1e35f7ee7d8a72e32108418ac7311071d42d579ebdb91f0456f02043d5": {
+        "title": "スナップショットによって異なる再読み取り",
+        "mermaid": "sequenceDiagram\nparticipant A as Transaction A\nparticipant B as Transaction B\nNote over A,B: 10:00 予約はpending\nB->>B: 10:01 読み取り：pending\nA->>A: 10:02 pendingをconfirmedに更新\nA->>A: 10:03 COMMIT\nB->>B: 10:04 再読み取り\nNote over B: Read Committed：通常confirmed\nNote over B: Repeatable Read：pending"
+      },
+      "cf58b4e9032bc09a25c59ccaac2a269630539708e843ad8ebe27a894979d1e1f": {
+        "title": "MVCCの効果と管理コスト",
+        "mermaid": "flowchart TD\nA[\"複数バージョンを保持\"] --> B[\"読み取りと書き込みの競合を減らす\"]\nB --> C[\"同時実行性能が向上\"]\nA --> D[\"保存領域や管理コストが増える\"]"
+      },
+      "6c511d216a78c421fddb1dd18a7960b29d24099eadd6d48b543e9c2209eff9f0": {
+        "title": "一覧と詳細が異なる時点のデータを表示する",
+        "mermaid": "sequenceDiagram\nparticipant A as スタッフA\nparticipant B as スタッフB\nA->>A: 予約一覧を取得\nA->>A: pendingと表示\nB->>B: 予約を確定\nB->>B: DB更新・COMMIT\nA->>A: 予約詳細を開く\nA->>A: confirmedと表示"
+      },
+      "5fd08cee1707a76cc9e5a2dc24efdf900ab43de4d6860b306fa96b7a2e3d5bdc": {
+        "title": "確認問題：再読み取りの値はどうなるか",
+        "mermaid": "sequenceDiagram\nparticipant A as Transaction A\nparticipant B as Transaction B\nB->>B: ① 読み取り：pending\nA->>A: ② 更新：confirmed\nA->>A: ③ COMMIT\nB->>B: ④ 再読み取り：？"
+      },
+      "8e4ad5f70c93a262fbd338d8ebec8bf2d3cf375c63d71664b70752ebe499265c": {
+        "title": "検索・整合性・並行処理のつながり",
+        "mermaid": "flowchart TD\nA[\"第14回：B-tree／データをどう高速に探すか\"] --> B[\"第15回：トランザクション／複数の操作をどう安全に実行するか\"]\nB --> C[\"第16回：MVCC／各トランザクションにどの時点のデータを見せるか\"]"
+      }
+    }
   }
 ]
