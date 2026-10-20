@@ -79,14 +79,13 @@ class NotesTest(unittest.TestCase):
                 (root / name).write_bytes((BASE / name).read_bytes())
             shutil.copytree(BASE / 'assets', root / 'assets')
             shutil.copytree(BASE / 'diagram-data', root / 'diagram-data')
-            definitions = {}
-            for path in (BASE / 'diagram-data').glob('*.json'):
-                definitions.update(json.loads(path.read_text()))
-            for raw in re.findall(r'<pre\b[^>]*><code>(.*?)</code></pre>', self.payload['lesson']['body'], re.S):
-                key = hashlib.sha256(unescape(raw).encode()).hexdigest()
-                if key in definitions:
-                    self.payload['lesson']['diagrams'] = {key: {**definitions[key], 'title': '新しい回専用の図'}}
-                    break
+            text = '同期テストの開始 → 完了'
+            key = hashlib.sha256(text.encode()).hexdigest()
+            self.payload['lesson']['body'] += f'<pre><code>{text}</code></pre>'
+            self.payload['lesson'].setdefault('diagrams', {})[key] = {
+                'title': '新しい回専用の図',
+                'mermaid': 'flowchart LR\nA["開始"] --> B["完了"]',
+            }
             append_lesson(root / 'lessons.json', self.payload)
             subprocess.run([sys.executable, str(root / 'build.py')], check=True)
             number = self.payload['number']
