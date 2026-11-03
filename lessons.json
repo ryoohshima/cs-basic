@@ -456,5 +456,36 @@
         "mermaid": "flowchart TD\nN0[\"受信側の空きバッファ：32KiB\"] --> N1\nN1[\"受信側 ── rwnd = 32KiB ──→ 送信側\"] --> N2\nN2[\"「今は32KiB分の受信余裕があります」\"]"
       }
     }
+  },
+  {
+    "title": "DNSと名前解決",
+    "group": "ネットワーク",
+    "goal": "DNSと名前解決の仕組みと実務での注意点を説明できる",
+    "body": "<h4>CS基礎 5分学習｜第21回</h4><h4>DNS — ブラウザはドメイン名からどうやってサーバーを見つけるのか？</h4><p>分野：ネットワーク｜学習時間：約5分</p><p>前回はTCPのフロー制御と輻輳制御を学びました。今回は、TCP接続を開始する前段階にあたる<strong>DNSによる名前解決</strong>を理解します。</p><h4>① 今日のテーマ</h4><p>ブラウザで次のURLへアクセスするとします。</p><pre><code>https://example.com/users</code></pre><p>人間は <code>example.com</code> という名前でWebサイトを識別します。しかし、ネットワーク上で通信先を特定するには、通常IPアドレスが必要です。</p><p>このドメイン名とIPアドレスを結び付ける仕組みが <strong>DNS（Domain Name System）</strong> です。</p><p>ただしDNSは、単なる巨大な電話帳ではありません。</p><p><strong>世界中に分散したサーバーが、階層的に名前を管理するシステム</strong>です。</p><h4>② 3分で理解する本質</h4><h4>1. DNSはなぜ階層構造なのか？</h4><p>仮に世界中のドメイン名を、1台のサーバーで管理するとしましょう。</p><p>登録情報が増えるほど管理が難しくなり、そのサーバーが停止すると、世界中の名前解決に影響が出ます。</p><p>そこでDNSは、名前空間を階層的に管理します。</p><aside><p>DNSの階層構造</p><pre><code>ルート DNS → 最上位の案内役 → .com → .jp → example.com → 権威DNS → example.jp → 権威DNS → 各階層が管理を委任する</code></pre>概念図。実際には各階層に複数のサーバーがあり、可用性を確保しています。</aside><p>ルートDNSは全サイトのIPアドレスを保持しているわけではありません。<code>.com</code> などを担当するDNSサーバーを案内します。</p><p>そして <code>.com</code> 側は、<code>example.com</code> を担当する権威DNSサーバーを案内します。</p><p>こうして<strong>管理する範囲を分担</strong>しています。</p><h4>2. ブラウザからDNS問い合わせが行われる流れ</h4><p><code>example.com</code> へのアクセスに必要な情報がキャッシュにない場合を考えます。</p><pre><code>ブラウザ\n  │\n  │ example.com のIPは？\n  ▼\nDNSリゾルバー\n  │\n  ├── ① ルートDNSに問い合わせ\n  │       → .com の担当を案内\n  │\n  ├── ② .comのDNSに問い合わせ\n  │       → example.comの担当を案内\n  │\n  └── ③ 権威DNSに問い合わせ\n          → IPアドレスを回答\n  │\n  ▼\nブラウザに結果を返す\n  │\n  ▼\n取得したIPアドレスを使って接続</code></pre><p>ここで重要なのが <strong>DNSリゾルバー</strong>です。</p><p>ブラウザ自身が毎回ルートDNSから順番に問い合わせるわけではありません。</p><p>通常はOSや設定されたDNSリゾルバーが名前解決を担当し、必要に応じて外部のDNSサーバーへ問い合わせます。</p><h4>3. なぜ毎回問い合わせないのか？</h4><p>DNSにもキャッシュがあります。</p><p>DNSの回答には一般的に <strong>TTL（Time To Live）</strong> が設定されます。これは、結果をキャッシュしてよい時間を示します。</p><p>例えば、TTLが300秒なら、キャッシュを保持する側は通常、最大5分間その回答を再利用できます。</p><aside><p><strong>DNSキャッシュのイメージ</strong></p><aside><p><strong>キャッシュあり</strong></p><p>保持している情報を利用</p><p>外部問い合わせを省略</p></aside><aside><p><strong>キャッシュなし</strong></p><p>リゾルバーが名前解決</p><p>必要な問い合わせを実行</p></aside></aside><p>これによって名前解決の待ち時間や、DNSサーバー全体への負荷を削減できます。</p><p>一方で、サーバーのIPアドレスを変更しても、古いキャッシュが残っている間は変更がすぐに反映されない場合があります。</p><hr><h4>③ フロントエンド実務との接続</h4><p>例えば、Next.jsの画面から外部APIを呼び出すとします。</p><pre><code>const response = await fetch(\n  &quot;https://api.example.com/users&quot;\n);\n\nconst users = await response.json();</code></pre><p>内部では概念的に、次の順番で処理が進みます。</p><pre><code>URLを解釈\n   ↓\napi.example.com の名前解決\n   ↓\n取得したIPアドレスへの接続\n   ↓\nTLSによる安全な通信の確立\n   ↓\nHTTPリクエスト\n   ↓\nHTTPレスポンス</code></pre><p>※TCPを使用するHTTPS通信の代表的な流れです。HTTP/3ではQUICを利用します。</p><p>実務で押さえたいポイントは、<strong>DNSはHTTPリクエストの前段階で動作する</strong>ということです。</p><p>例えばDevToolsのNetworkタブで <code>DNS Lookup</code> が長い場合、APIの処理自体ではなく、名前解決が遅延要因になっている可能性があります。</p><p>また、DNSの名前解決に失敗すれば、そもそもHTTPリクエストを送れません。HTTPの <code>404</code> や <code>500</code> が返る状況とは異なります。</p><p>Web制作・運用でも、DNSの設定変更やドメイン移管時にはTTLとキャッシュの仕組みを理解しておくことが役立ちます。</p><h4>DNSの問い合わせ順序</h4><pre><code>ブラウザ → DNSリゾルバー → ルートDNS → .com → 権威DNS → IP回答 → 接続</code></pre><h4>④ 理解確認問題</h4><aside><p><strong>問題1</strong></p><p>ブラウザが <code>example.com</code> にアクセスする際、DNSリゾルバーがIPアドレスをキャッシュしていました。</p><p>この場合、名前解決のために毎回ルートDNSまで問い合わせる必要があるでしょうか？</p><p>必要がある</p><p>必要はない</p><hr><p><strong>問題2</strong></p><p>Webサイトのサーバーを移転し、DNSのIPアドレスを変更しました。しかし、一部のユーザーはまだ古いサーバーへ接続しています。</p><p>最も適切な説明はどちらでしょうか？</p><p>DNSのキャッシュに古いIPアドレスが残っている可能性がある</p><p>HTTPのGETメソッドが古いIPアドレスを保持している</p></aside><hr><p><strong>今日のまとめ：</strong> DNSは、階層的に管理された分散システムによってドメイン名を解決します。さらにキャッシュによって問い合わせ回数を削減しています。</p><p>以前学んだデータベースのインデックスやRedisのキャッシュとも、「必要な情報を効率よく取得する」という設計思想がつながります。</p><p><strong>次回・第22回：TLS — HTTPSではどうやって通信内容を暗号化しているのか？</strong></p><p>DNSで接続先を特定した後、ブラウザがどのようにサーバーの正当性を確認し、安全な通信を確立するのかを学びます。</p><details><summary>解答を見る（補足解答）</summary><p><strong>問題1</strong> 有効なキャッシュがあれば毎回ルートDNSへ問い合わせる必要はありません。</p><p><strong>問題2</strong> DNSキャッシュに古いIPアドレスが残っている可能性があります。HTTPのGETメソッド自体が古いIPを保持するわけではありません。</p></details>",
+    "practice": "<p>補足：本文の実務例を使って、どの層が状態や通信を管理しているか確認してください。</p>",
+    "questions": [
+      [
+        "補足の復習：この回の重要な仕組みを自分の言葉で説明してください。",
+        "有効なキャッシュがあれば毎回ルートDNSへ問い合わせる必要はありません。"
+      ]
+    ],
+    "diagrams": {
+      "6ae8fcecbc972fefe2bfa6f8f143ed324f0bc62756fd04fb9d3342348e63cb22": {
+        "title": "図：DNSと名前解決",
+        "mermaid": "flowchart TD\nR[\"ルートDNS：最上位の案内役\"] --> C[\".com\"]\nR --> J[\".jp\"]\nC --> E[\"example.com：権威DNS\"]\nJ --> F[\"example.jp：権威DNS\"]\nR -. \"各階層が管理を委任\" .-> E"
+      },
+      "5fbde60adadfde6ce5002ce87a278a4ea155c7b8a537d7cb80a7dd146c5f4b96": {
+        "title": "DNSの問い合わせ順序",
+        "mermaid": "sequenceDiagram\nparticipant B as ブラウザ\nparticipant R as DNSリゾルバー\nparticipant T as ルートDNS\nparticipant C as .com DNS\nparticipant A as 権威DNS\nB->>R: example.comのIPは？\nR->>T: 問い合わせ\nT-->>R: .comの担当\nR->>C: 問い合わせ\nC-->>R: example.comの担当\nR->>A: 問い合わせ\nA-->>R: IPアドレス\nR-->>B: 結果を返す"
+      },
+      "cf4c062af9faf5db3012867a0cbac0b5e4150c0cb76989c95cb43c9ab45456de": {
+        "title": "処理の流れ",
+        "mermaid": "sequenceDiagram\nparticipant B as ブラウザ\nparticipant R as DNSリゾルバー\nparticipant T as ルートDNS\nparticipant C as .com DNS\nparticipant A as 権威DNS\nB->>R: example.comのIPは？\nR->>T: 問い合わせ\nT-->>R: .comの担当\nR->>C: 問い合わせ\nC-->>R: example.comの担当\nR->>A: 問い合わせ\nA-->>R: IPアドレス\nR-->>B: 結果を返す"
+      },
+      "64c2eb74105b7b3a40453da9583f6380be7e8a029ba9a81443871620c0cd862a": {
+        "title": "処理の流れ",
+        "mermaid": "flowchart TD\nN0[\"URLを解釈\"] --> N1\nN1[\"api.example.com の名前解決\"] --> N2\nN2[\"取得したIPアドレスへの接続\"] --> N3\nN3[\"TLSによる安全な通信の確立\"] --> N4\nN4[\"HTTPリクエスト\"] --> N5\nN5[\"HTTPレスポンス\"]"
+      }
+    }
   }
 ]
