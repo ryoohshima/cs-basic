@@ -591,5 +591,28 @@
         "mermaid": "flowchart TD\nN0[\"1回目のリクエスト\"] --> N1\nN1[\"サーバーA\"] --> N2\nN2[\"ログイン成功\"] --> N3\nN3[\"Aのメモリにセッション情報を保存\"] --> N4\nN4[\"2回目のリクエスト\"] --> N5\nN5[\"サーバーB\"] --> N6\nN6[\"セッション情報がない！\"]"
       }
     }
+  },
+  {
+    "title": "冪等性と安全なリトライ",
+    "group": "分散システム",
+    "goal": "冪等性と安全なリトライの仕組みと実務での注意点を説明できる",
+    "body": "<h4>CS基礎 5分学習｜第26回</h4><p>2026年11月3日｜分散システム編｜約5分</p><h4>① 今日のテーマ</h4><p><strong>冪等性（Idempotency）— なぜ同じAPIリクエストを2回送っても安全にする必要があるのか？</strong></p><p>前回はロードバランサーとステートレスなサーバー設計を学びました。</p><p>今回は、複数サーバーが動作する環境で避けられない「通信失敗とリトライ」の問題を考えます。</p><h4>② 3分で理解する本質</h4><h4>1. タイムアウトは処理の失敗を意味しない</h4><p>例えば、予約システムでユーザーが予約確定ボタンを押したとします。</p><aside><pre><code>ブラウザ → サーバー → POST /reservations → 予約登録成功 → レスポンスが消失 → タイムアウト</code></pre></aside><p>サーバーでは予約登録が成功しています。しかし、レスポンスがネットワーク障害で届きませんでした。</p><p>ブラウザからすると、次のどちらなのか区別できません。</p><ul><li><p>サーバーが処理する前に失敗した</p></li><li><p>サーバーの処理は成功したが、レスポンスだけ失われた</p></li></ul><p>ユーザーがもう一度ボタンを押したらどうなるでしょうか？</p><p>APIの設計によっては、<strong>同じ予約が2件作成されてしまいます。</strong></p><h4>2. 冪等性とは何か？</h4><p>冪等性とは、同じ操作を何回実行しても、1回実行した場合と同じ状態になる性質です。</p><p>例えば次の2つを比較します。</p><pre><code>// 冪等：何度実行しても value は10\nvalue = 10;\n\n// 非冪等：実行するたびに value が増える\nvalue += 10;</code></pre><p>1回目と2回目の結果を比較すると違いが明確です。</p><table><tbody><tr><th><p>操作</p></th><th><p>1回実行</p></th><th><p>2回実行</p></th></tr><tr><td><p><code>value = 10</code></p></td><td><p>10</p></td><td><p>10</p></td></tr><tr><td><p><code>value += 10</code></p></td><td><p>10</p></td><td><p>20</p></td></tr></tbody></table><p>重要なのは、<strong>処理を1回しか実行しないことではなく、繰り返しても意図した最終状態が変わらないこと</strong>です。</p><p>HTTPの仕様でも、GET・PUT・DELETEは冪等なメソッドと定義されています。一方、POSTは標準では冪等性が保証されません。rfc-editor.org</p><h4>3. POSTを安全に再試行するには？</h4><p>代表的な方法が <strong>Idempotency Key（冪等性キー）</strong> です。</p><aside><p>同じキーを使った再試行</p><ol><li><p><strong>初回リクエスト</strong></p><p><code>POST /reservations</code>、キー <code>abc-123</code> を送信</p></li><li><p><strong>サーバー側で予約作成に成功</strong></p><p>キー <code>abc-123</code> と処理結果を保存。しかしレスポンスが消失</p></li><li><p><strong>同じキーでリトライ</strong></p><p>サーバーがキー <code>abc-123</code> を認識し、予約を二重作成せず保存済みの結果を返す</p></li></ol><aside><p>リクエスト2回、予約作成1回</p></aside></aside><p>ただしキーを送るだけでは不十分です。</p><p>サーバー側でキーの重複を検出し、処理結果を記録する必要があります。さらに、同じキーのリクエストが同時到着した場合にも二重実行を防ぐため、データベースの一意制約やトランザクションなどを利用します。</p><p>以前学んだトランザクションの知識が、ここでつながります。</p><h4>③ JavaScript・TypeScript・Web実務との接続</h4><p>例えばReactから予約作成APIを呼び出す場合です。</p><pre><code>// 1つの予約作成操作につき1つのキー\nconst idempotencyKey = crypto.randomUUID();\n\nasync function createReservation() {\n  return fetch(&quot;/api/reservations&quot;, {\n    method: &quot;POST&quot;,\n    headers: {\n      &quot;Content-Type&quot;: &quot;application/json&quot;,\n      &quot;Idempotency-Key&quot;: idempotencyKey,\n    },\n    body: JSON.stringify({\n      serviceId: &quot;service-001&quot;,\n    }),\n  });\n}</code></pre><p>この <code>createReservation()</code> を通信エラー後に再実行しても、同じキーが使われます。</p><p>ただし、これは<strong>サーバー側がIdempotency-Keyに対応していることが前提</strong>です。</p><p>また、新しく別の予約を作る場合には、新しいキーを発行します。キーはリクエスト単位ではなく、論理的な操作単位に対応させるのがポイントです。</p><p>React側でボタンを <code>disabled</code> にすることも連打防止には有効ですが、通信エラー後の再送や複数タブからの操作までは防げません。</p><p><strong>重複実行を防ぐ保証は、最終的にサーバー側で設計する必要があります。</strong></p><h4>同じキーで安全に再試行</h4><pre><code>POSTとキーabc-123 → 予約作成と結果保存 → レスポンス消失 → 同じキーで再試行 → 二重作成せず保存済み結果を返す</code></pre><h4>④ 理解確認問題</h4><aside><p><strong>問題1</strong></p><p>APIリクエストがタイムアウトしました。このとき、サーバー側の処理について正しい説明はどちらでしょうか？</p><p>必ず処理に失敗している</p><p>処理は成功していて、レスポンスだけ失われた可能性がある</p><hr><p><strong>問題2</strong></p><p>予約作成APIで、同じ冪等性キーのリクエストがほぼ同時に2件届きました。安全性を保証するために必要なのはどちらでしょうか？</p><p>処理前に単純なSELECTでキーが存在しないことを確認するだけ</p><p>DBの一意制約やトランザクションなどを用いて、同時実行でも重複を防ぐ</p></aside><hr><p><strong>今日のまとめ：</strong> 分散システムでは、通信に失敗しても処理自体は成功している可能性があります。そのため、リトライの安全性を確保する冪等性が重要になります。</p><p><strong>次回・第27回：競合状態（Race Condition）— なぜ正しい処理を2つ同時に実行すると不具合になるのか？</strong></p><p>今回の同時リクエスト問題を起点に、排他制御とデータの整合性を学びます。</p><details><summary>解答を見る（補足解答）</summary><p><strong>問題1</strong> 処理は成功していて、レスポンスだけ失われた可能性があります。タイムアウトだけでは成否を判断できません。</p><p><strong>問題2</strong> DBの一意制約やトランザクションなどで同時実行でも重複を防ぐ必要があります。単純なSELECTだけでは確認直後の競合を防げません。</p></details>",
+    "practice": "<p>補足：本文の実務例を使って、どの層が状態や通信を管理しているか確認してください。</p>",
+    "questions": [
+      [
+        "補足の復習：この回の重要な仕組みを自分の言葉で説明してください。",
+        "処理は成功していて、レスポンスだけ失われた可能性があります。タイムアウトだけでは成否を判断できません。"
+      ]
+    ],
+    "diagrams": {
+      "eea089acb41566015746efd3cecd4a22e191034439455507e7c2b410b8f98050": {
+        "title": "図：冪等性と安全なリトライ",
+        "mermaid": "sequenceDiagram\nparticipant B as ブラウザ\nparticipant S as サーバー\nB->>S: POST /reservations\nS->>S: 予約登録成功\nS--xB: レスポンス消失\nNote over B: タイムアウト"
+      },
+      "8d7aaf3658863c29e5a2ddcd08bd8fcb81602a069960e6458d8fa4144a7b81ce": {
+        "title": "同じキーで安全に再試行",
+        "mermaid": "sequenceDiagram\nparticipant B as ブラウザ\nparticipant S as サーバー\nB->>S: POST：キーabc-123\nS->>S: 予約作成、キーと結果を保存\nS--xB: レスポンス消失\nB->>S: 同じキーabc-123で再試行\nS-->>B: 二重作成せず保存済み結果を返す"
+      }
+    }
   }
 ]
