@@ -514,5 +514,28 @@
         "mermaid": "flowchart LR\nA[\"ブラウザ：平文\"] --> B[\"暗号化\"]\nB --> C[\"暗号文を送信\"]\nC --> D[\"サーバー：復号\"]\nD --> E[\"平文\"]"
       }
     }
+  },
+  {
+    "title": "HTTP/2とHTTP/3",
+    "group": "ネットワーク",
+    "goal": "HTTP/2とHTTP/3の仕組みと実務での注意点を説明できる",
+    "body": "<h4>CS基礎 5分学習｜第23回</h4><h4>HTTP/2とHTTP/3 — なぜHTTPは進化し続けているのか？</h4>ネットワーク編<p>約5分</p><p>前回は、TLSによる暗号化とサーバー認証を学びました。今回は、HTTP/2からHTTP/3への進化を通じて、<strong>通信を並列化しても遅くなることがある理由</strong>を理解します。</p><h4>① 今日のテーマ</h4><p>HTTPのバージョンが変わっても、<code>GET</code> や <code>POST</code>、<code>200 OK</code> などの基本的な意味は変わりません。</p><p>大きく変わるのは、<strong>HTTPのデータをどう運ぶか</strong>です。</p><table><tbody><tr><th></th><th><p>HTTP/1.1</p></th><th><p>HTTP/2</p></th><th><p>HTTP/3</p></th></tr><tr><td><p>主な転送方式</p></td><td><p>TCP</p></td><td><p>TCP</p></td><td><p>QUIC（UDP上）</p></td></tr><tr><td><p>多重化</p></td><td><p>基本的になし</p></td><td><p>あり</p></td><td><p>あり</p></td></tr><tr><td><p>TCP由来の待ち</p></td><td><p>あり</p></td><td><p>あり</p></td><td><p>なし</p></td></tr></tbody></table><h4>② 3分で理解する本質</h4><h4>1. HTTP/1.1の課題：順番待ち</h4><p>例えばブラウザが、CSS、JavaScript、画像を取得するとします。</p><p>HTTP/1.1では、一般に1つのTCP接続上でリクエストとレスポンスを順番に処理します。</p><p>先のレスポンスが遅れると、後続の処理が待たされることがあります。</p><p>そこでHTTP/2は**多重化（Multiplexing）**を導入しました。</p><h4>2. HTTP/2：1本の接続で並列に運ぶ</h4><p>HTTP/2では、それぞれのリクエストを「ストリーム」として区別します。</p><pre><code>HTTP/2\n\nCSS   ── A1 ── A2 ── A3 ──\nJS    ── B1 ── B2 ── B3 ──\n画像  ── C1 ── C2 ── C3 ──\n\n1本のTCP接続へ多重化\n      ↓\nA1 B1 C1 A2 B2 C2 A3 B3 C3</code></pre><p>これによって、1つのHTTPレスポンスが完了するまで、他のレスポンスを送れないという制約を解消できます。</p><p>しかし、ここに落とし穴があります。</p><p><strong>TCPそのものは、バイト列を順番どおりにアプリケーションへ渡す仕組み</strong>です。</p><p>途中のTCPセグメントが失われると、その後のデータを受信していても、欠けた部分が再送されるまでアプリケーションに渡せません。</p><p>つまり、HTTP/2では別々のストリームなのに、TCP側では一緒に待たされることがあります。</p><p>これが <strong>Head-of-Line Blocking（HOLブロッキング）</strong> です。MDN+1</p><h4>3. HTTP/3：ストリームごとに独立させる</h4><p>HTTP/3はTCPの代わりに、UDP上の<strong>QUIC</strong>を使います。</p><p>QUICはストリーム単位で順序制御を行うため、あるストリームのデータが欠けても、他のストリームは処理を進められます。</p><aside><p>パケット損失シミュレーション</p><p>CSSのデータの一部が失われた場合</p><aside><p>CSS</p></aside><aside><p>JS</p></aside><aside><p>画像</p></aside><aside><p><strong>すべてのストリームが影響を受ける</strong></p><p>TCPで欠けたバイトの再送を待つため、後続の他ストリームのデータもアプリケーションへ渡せません。</p></aside>仕組みを理解するための模式図。実際のパケット配置や再送処理は異なります。</aside><p>ここで重要なのは、<strong>HTTP/3でもパケット損失は発生する</strong>ということです。</p><p>QUICは信頼性を捨てたわけではありません。ストリーム単位の再送・順序制御を備えています。</p><p>HTTP/3は、1つのストリームの損失が他のストリームを不必要に止めてしまう問題を改善したのです。rfc-editor.org</p><h4>③ フロントエンド実務との接続</h4><p>ReactやNext.jsで書く <code>fetch()</code> のコードは、HTTP/2でもHTTP/3でも基本的に同じです。</p><pre><code>const [users, products] = await Promise.all([\n  fetch(&quot;/api/users&quot;),\n  fetch(&quot;/api/products&quot;),\n]);</code></pre><p><code>Promise.all()</code> は、JavaScript側で非同期処理の完了を並行して待つための仕組みです。</p><p>一方、HTTP/2やHTTP/3の多重化は、<strong>ネットワーク上で複数のリクエストを効率よく運ぶ仕組み</strong>です。</p><p>つまり、異なる層で並列性を実現しています。</p><p>Chrome DevToolsのNetworkタブで、Protocol列を表示すると、<code>h2</code> や <code>h3</code> といった通信プロトコルを確認できます。</p><p>ただしHTTP/3が必ず高速とは限りません。実際の性能は通信環境、パケット損失、サーバーの実装などによります。</p><h4>HTTP/2とHTTP/3の損失の影響</h4><pre><code>CSSの一部を損失：HTTP/2はTCPの順序待ちでJS・画像も待つ。HTTP/3は影響を受けないストリームを進められる。</code></pre><h4>④ 理解確認問題</h4><aside><p><strong>問題1</strong></p><p>HTTP/2で複数のストリームを同時に扱えるのに、1つのTCPセグメントが失われると他のストリームも待たされるのはなぜでしょうか？</p><p>HTTP/2では複数のリクエストを送信できないから</p><p>TCPがバイト列を順序どおりに届けるから</p><hr><p><strong>問題2</strong></p><p>HTTP/3がTCPではなくQUICを採用する重要な理由はどちらでしょうか？</p><p>データの再送を完全になくすため</p><p>ストリーム間の不要な待ちを減らすため</p></aside><hr><p><strong>今日のまとめ：</strong> HTTP/2は通信の多重化を実現しましたが、TCPの順序保証に起因する問題が残りました。HTTP/3はQUICを採用し、ストリームの独立性を高めています。</p><p>今回の本質は、<strong>上位層で並列化しても、下位層の設計がボトルネックになることがある</strong>という点です。</p><p>次回・第24回は「キャッシュの一貫性 — なぜ更新したデータが古いまま表示されるのか？」。ブラウザ・CDN・サーバー間のキャッシュを題材に、分散システムの基本へ進みます。</p><details><summary>解答を見る（補足解答）</summary><p><strong>問題1</strong> TCPがバイト列を順序どおりに渡すため、欠落部分の再送待ちで別ストリームの後続データも待たされることがあります。</p><p><strong>問題2</strong> ストリーム間の不要な待ちを減らすためです。QUICも信頼性のための再送・順序制御を備えています。</p></details>",
+    "practice": "<p>補足：本文の実務例を使って、どの層が状態や通信を管理しているか確認してください。</p>",
+    "questions": [
+      [
+        "補足の復習：この回の重要な仕組みを自分の言葉で説明してください。",
+        "TCPがバイト列を順序どおりに渡すため、欠落部分の再送待ちで別ストリームの後続データも待たされることがあります。"
+      ]
+    ],
+    "diagrams": {
+      "e09f2581bc477c7bf949bd1106117bfd36fc982d1384991018e478e5b65bea2b": {
+        "title": "HTTP/2とHTTP/3の損失の影響",
+        "mermaid": "flowchart TD\nA[\"CSSのデータの一部が失われる\"] --> B[\"HTTP/2：TCPの欠落部分を再送待ち\"]\nB --> C[\"後続のJS・画像もアプリへ渡せず待つ\"]\nA --> D[\"HTTP/3：QUICでストリーム単位の順序制御\"]\nD --> E[\"他のストリームは処理を進められる\"]"
+      },
+      "9294f8f16d3b85c04a08579916051a6817f43859c171ebefb744a3bea782c20e": {
+        "title": "処理の流れ",
+        "mermaid": "flowchart TD\nA[\"CSS：A1 A2 A3\"] --> M[\"1本のTCP接続へ多重化\"]\nB[\"JS：B1 B2 B3\"] --> M\nC[\"画像：C1 C2 C3\"] --> M\nM --> D[\"A1 B1 C1 A2 B2 C2 A3 B3 C3\"]"
+      }
+    }
   }
 ]
