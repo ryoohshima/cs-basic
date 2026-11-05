@@ -660,5 +660,28 @@
         "mermaid": "sequenceDiagram\nparticipant P1 as 処理1\nparticipant A as 枠A\nparticipant B as 枠B\nparticipant P2 as 処理2\nP1->>A: ロック取得\nP2->>A: 取得を要求して待機\nP1->>B: ロック取得\nP1->>P1: 更新・確定\nNote over A,B: 処理1のロック解放\nP2->>A: ロック取得\nP2->>B: ロック取得\nP2->>P2: 更新・確定"
       }
     }
+  },
+  {
+    "title": "楽観的ロック",
+    "group": "分散システム",
+    "goal": "保存時に版を比較して更新の消失を防ぐ仕組みを説明できる",
+    "body": "<h4>前回からのつながり</h4>\n<p>第28回では、ロックの取得順によってデッドロックが起きることを学びました。今回は、編集画面を開いてから保存するまでの長い時間に注目します。<strong>楽観的ロック</strong>では、編集の間はロックを保持せず、保存時に「自分が読んだ版から変わっていないか」を確かめます。</p>\n<h4>二人が同じプロフィールを編集したら</h4>\n<p>AさんとBさんは、どちらもプロフィールのバージョン7を読み込みました。Aさんが先に保存してバージョン8になります。Bさんが古い画面の内容をそのまま保存すると、Aさんの変更を上書きすることがあります。これが<strong>更新の消失</strong>です。</p>\n<pre><code>AとBがバージョン7を取得\nAがバージョン7を条件に保存 → 成功、バージョン8へ\nBがバージョン7を条件に保存 → 条件不一致、変更なし\n</code></pre>\n<h4>SQLでは確認と更新を一つの文にする</h4>\n<pre><code>UPDATE profiles\nSET display_name = :name, version = version + 1\nWHERE id = :id AND version = :expected_version;\n</code></pre>\n<p><code>:expected_version</code> には、編集開始時に取得した版を渡します。対象が存在し、版が一致すれば1行更新されます。0行なら条件を満たす行がありません。版の不一致のほか、対象が削除された場合もあるので、区別が必要なら追加で確認します。この方法で競合を検出するには、同じデータを変更する経路が一貫して版を進める必要があります。</p>\n<p>先に <code>SELECT</code> で版だけを確かめて、その後に版の条件がない <code>UPDATE</code> を実行すると、二つの文の間に別の更新が入り込めます。PostgreSQLの既定のRead Committedでは、同じ行を更新中のトランザクションを待った場合、先行更新のコミット後に <code>WHERE</code> 条件を改めて評価します。保存時には行ロックによる待ちが生じ得ます。<a href=\"https://www.postgresql.org/docs/current/transaction-iso.html#XACT-READ-COMMITTED\">PostgreSQL公式ドキュメント</a></p>\n",
+    "practice": "<h4>Reactの編集画面とAPIで使う</h4>\n<p>APIのGETが <code>ETag: &quot;v7&quot;</code> を返す設計なら、Reactのフォームは編集開始時のETagを下書きと一緒に保持します。保存リクエストには <code>If-Match: &quot;v7&quot;</code> を付けます。サーバー側は強い比較で現在のETagと照合し、条件を満たさなければ更新せず <code>412 Precondition Failed</code> を返せます。<a href=\"https://www.rfc-editor.org/rfc/rfc9110.html#section-13.1.1\">RFC 9110 §13.1.1</a></p>\n<p>画面では下書きを残して最新版を取得し、差分を表示します。ユーザーが取り込み方を選んでから、確認した最新版を基準に再保存します。新しいETagだけに差し替えて同じ下書きを自動送信すると、相手の変更を上書きしかねません。</p>\n<h4>要点と次回</h4>\n<p>編集時に読んだ版を持ち、保存時の更新条件に含めると、古い下書きによる上書きを検出できます。次回は、別々のデータへの更新を一つのまとまりとして扱うトランザクションを見ます。</p>\n",
+    "questions": [
+      [
+        "<p>AさんとBさんがともにバージョン7を読み、Aさんが先に保存しました。Bさんが期待バージョン7を指定したUPDATEで更新される行は何行ですか？</p>\n",
+        "<p>0行です。Aさんの保存で現在のバージョンは8になり、Bさんの <code>WHERE version = 7</code> を満たしません。</p>\n"
+      ],
+      [
+        "<p>412を受けたとき、新しいETagを付けて同じ下書きを自動送信すると何が起き得ますか？</p>\n",
+        "<p>新しい版との条件は通りますが、下書きは古い版をもとにしています。下書きに含まれない相手の変更を上書きし得るので、最新版と下書きを比較してから再保存します。</p>\n"
+      ]
+    ],
+    "diagrams": {
+      "274687848ee8c5eaf3dad667854aefdcf4b3c23ba2765b2fbfb36e64ab00d95e": {
+        "title": "バージョン7からの二つの保存",
+        "mermaid": "sequenceDiagram\nparticipant A as Aさん\nparticipant B as Bさん\nparticipant S as サーバー\nS-->>A: バージョン7\nS-->>B: バージョン7\nA->>S: バージョン7を条件に保存\nS-->>A: 成功、バージョン8へ\nB->>S: バージョン7を条件に保存\nS-->>B: 条件不一致、変更なし"
+      }
+    }
   }
 ]
