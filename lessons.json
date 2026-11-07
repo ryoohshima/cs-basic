@@ -706,5 +706,28 @@
         "mermaid": "flowchart TD\nA[開始] --> B[在庫を1個減らす]\nB --> C{注文の記録}\nC -->|成功| D[COMMIT]\nC -->|失敗| E[ROLLBACK]\nD --> F[在庫4個・注文1件]\nE --> G[在庫5個・注文0件]"
       }
     }
+  },
+  {
+    "title": "トランザクションの分離性",
+    "group": "分散システム",
+    "goal": "分離レベルによって読み取り時点が変わることを説明できる",
+    "body": "<h4>分離性で「どの時点のデータを見るか」を決める</h4>\n<p>前回は、在庫更新と注文記録をまとめて確定する原子性を学びました。今回は、複数のトランザクションが同時に動くときの**分離性（Isolation）**です。同時実行によって互いの読み取りや更新がどう影響するかを、分離レベルで定めます。</p>\n<h4>同じトランザクションで二度読んだら</h4>\n<p>在庫が5個のとき、Aが在庫を読みます。その後、Bが注文を確定して在庫を4個にします。Aがもう一度読むと、いくつ見えるでしょうか。</p>\n<pre><code>Aが在庫を読む → 5個\nBが在庫を4個にしてCOMMIT\nAがもう一度読む → Read Committedでは4個、Repeatable Readでは5個\n</code></pre>\n<p>この例では、A自身は在庫を更新していません。PostgreSQLの通常のSELECTは、Read Committedでは文の開始時点、Repeatable Readではトランザクション内の最初の処理文が開始した時点のスナップショットを読みます。スナップショットは、ある時点のデータの見え方です。両方とも他のトランザクションの未確定の変更は読みませんが、自分自身が行った更新は見えます。 <a href=\"https://www.postgresql.org/docs/current/transaction-iso.html\">PostgreSQL公式ドキュメント</a></p>\n<h4>SQLで分離レベルを指定する</h4>\n<pre><code>BEGIN ISOLATION LEVEL REPEATABLE READ;\nSELECT stock FROM products WHERE id = 1;\n-- 別の接続で在庫が更新・確定されても、同じ版を見る\nSELECT stock FROM products WHERE id = 1;\nCOMMIT;\n</code></pre>\n<p>PostgreSQLの既定はRead Committedです。同じ値を読み続ける必要がある集計などでは、Repeatable Readのように読み取り時点をそろえる方法が候補になります。ただし、Repeatable Readでも複数行にまたがる業務ルールを自動で守れるとは限りません。Serializableは、成功したトランザクションの結果が、何らかの順序で一つずつ実行した場合と一致することを保証します。競合による直列化失敗には、トランザクション全体の再試行が必要です。 <a href=\"https://www.postgresql.org/docs/current/transaction-iso.html\">PostgreSQLの分離レベル</a></p>\n",
+    "practice": "<h4>ReactのダッシュボードとAPIで使う</h4>\n<p>注文一覧と注文件数を別々のAPIで取得すると、取得の間に注文が増えて表示が食い違うことがあります。一つのAPI内で、同じDB接続・同じRepeatable Readトランザクションから両方を読む設計なら、読み取り時点をそろえられます。ReactでPromise.allを使うだけでは、二つのAPIのDBスナップショットはそろいません。</p>\n<p>また、画面に表示した在庫は、その読み取り時点の情報です。購入を確定するAPIでは、第30回のように在庫の条件付き更新と注文記録を行います。</p>\n<h4>要点と次回</h4>\n<p>原子性は変更をまとめて確定する性質、分離性は同時実行の影響を定める性質です。次回は、DBが過去の版を使って読み取りを支える仕組みであるMVCCを見ます。</p>\n",
+    "questions": [
+      [
+        "<p>PostgreSQLのRead Committedで、Aの二回のSELECTの間にBが在庫更新をコミットしました。Aの二回目の値は変わり得ますか？</p>\n",
+        "<p>変わり得ます。通常のSELECTは文ごとに読み取り時点が決まるため、二回目の開始前に確定したBの変更が見えます。</p>\n"
+      ],
+      [
+        "<p>注文一覧APIと件数APIをPromise.allで呼べば、同じ時点のデータを取得できますか？</p>\n",
+        "<p>保証できません。呼び出しを並行させても、各APIが使うトランザクションや読み取り時点は独立しています。同じ時点が必要なら、サーバー側で同じスナップショットから読み取る設計にします。</p>\n"
+      ]
+    ],
+    "diagrams": {
+      "406f6a4c94b14d34da800a33e0f43d54ea566f1a53cc108a5c03ccf327816bc4": {
+        "title": "二度の読み取りと別の更新",
+        "mermaid": "sequenceDiagram\nparticipant A as トランザクションA\nparticipant D as DB\nparticipant B as トランザクションB\nA->>D: 在庫を読む\nD-->>A: 5個\nB->>D: 在庫を4個に更新してCOMMIT\nA->>D: 在庫をもう一度読む\nD-->>A: Read Committedは4個、Repeatable Readは5個"
+      }
+    }
   }
 ]
