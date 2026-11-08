@@ -729,5 +729,28 @@
         "mermaid": "sequenceDiagram\nparticipant A as トランザクションA\nparticipant D as DB\nparticipant B as トランザクションB\nA->>D: 在庫を読む\nD-->>A: 5個\nB->>D: 在庫を4個に更新してCOMMIT\nA->>D: 在庫をもう一度読む\nD-->>A: Read Committedは4個、Repeatable Readは5個"
       }
     }
+  },
+  {
+    "title": "MVCCと行の版",
+    "group": "分散システム",
+    "goal": "スナップショットに応じて行の版を読み分ける仕組みを説明できる",
+    "body": "<h4>MVCCで更新前の版を読む</h4>\n<p>前回、Repeatable Readでは、別のトランザクションが更新を確定しても同じスナップショットを読めると学びました。今回は、それを支える**MVCC（Multiversion Concurrency Control、多版同時実行制御）**です。</p>\n<h4>在庫が変わっても、古い値を読める理由</h4>\n<p>PostgreSQLは、行を更新したときに以前の版をすぐに消さず、新しい版とともに管理します。読み取り側は、スナップショットに応じて自分から見える版を選びます。DB全体を読み取りのたびにコピーする、と考える必要はありません。 <a href=\"https://www.postgresql.org/docs/current/mvcc-intro.html\">PostgreSQLのMVCC</a></p>\n<p>たとえば、在庫5個の時点でAがRepeatable Readの最初のSELECTを実行し、その後Bが4個へ更新してコミットしたとします。A自身が更新していなければ、Aの次の通常のSELECTは5個を読みます。Bの確定後に始めたCの通常のSELECTは4個を読みます。</p>\n<pre><code>更新前の版（在庫5個） → Aの既存スナップショットから見える\n更新後の版（在庫4個） → Bの確定後に読み始めたCから見える\n</code></pre>\n<h4>読み取りと更新を並行して進める</h4>\n<p>MVCCでは、通常の読み取りと行の更新が互いの行ロックを待たずに進められます。ただし、同じ行を更新する処理同士や、SELECT FOR UPDATEのように明示的にロックする操作では、待ちが発生し得ます。DDLなどの強いテーブルロックによって通常のSELECTが待つ場合もあります。 <a href=\"https://www.postgresql.org/docs/current/mvcc-intro.html\">PostgreSQLのMVCC</a></p>\n",
+    "practice": "<h4>APIで長く読み取りを続けると</h4>\n<p>過去の版は、必要とする読み取りがある間は回収できません。PostgreSQLのVACUUMは、不要になった行の版を回収し、その領域を再利用できるようにします。古いスナップショットを保つトランザクションを長時間開いていると、回収を妨げることがあります。 <a href=\"https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY\">PostgreSQLのVACUUM</a></p>\n<p>Reactの編集フォームを開いている間ずっとDBトランザクションを保持すると、ユーザーの操作時間がDBの資源保持時間になります。APIは必要な読み取りを終えたらトランザクションを終了し、保存時には第29回の楽観的ロックで版を確認する設計が使えます。</p>\n<h4>要点と次回</h4>\n<p>MVCCは複数の行の版を管理し、読み取り時点に合うデータを見せます。分離レベルが「どの時点を見るか」を決め、MVCCがその読み取りを支えます。次回は、障害後にも確定した変更を復元するためのWALを見ます。</p>\n",
+    "questions": [
+      [
+        "<p>Aが古いスナップショットで在庫5個を読み、Bが4個へ更新して確定しました。Aがまだ5個を読めるのは、Bの更新が失敗したからですか？</p>\n",
+        "<p>Bの更新は成功しています。Aは自分のスナップショットから見える更新前の版を読み、Bの確定後に読み始めたCは更新後の版を読めます。</p>\n"
+      ],
+      [
+        "<p>古いスナップショットを保持するトランザクションが長時間続くと、不要な行の版をすぐ回収できないのはなぜですか？</p>\n",
+        "<p>そのトランザクションが過去の版を読む可能性があるためです。必要な版を残したうえで、どのトランザクションにも不要になった版を回収します。</p>\n"
+      ]
+    ],
+    "diagrams": {
+      "ef4db7f882fbe69576b3189d013704e8d382320035357d2d15da9decfdb5df3b": {
+        "title": "スナップショットと見える行の版",
+        "mermaid": "flowchart LR\nO[更新前の版・在庫5個] --> A[Aの既存スナップショット]\nN[更新後の版・在庫4個] --> C[Bの確定後に読み始めたC]"
+      }
+    }
   }
 ]
