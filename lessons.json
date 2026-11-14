@@ -867,5 +867,28 @@
         "mermaid": "flowchart TD\nA[プライマリで注文を確定] --> B[注文APIが成功を返す]\nB --> C[再生前に一覧を取得]\nC --> D[新しい注文は見えない]\nD --> E[スタンバイがWALを再生]\nE --> F[その後の一覧に注文が出る]"
       }
     }
+  },
+  {
+    "title": "同期レプリケーションとコミット",
+    "group": "分散システム",
+    "goal": "スタンバイでの永続化と再生を区別できる",
+    "body": "<h4>コミットはどこまで待つか</h4>\n<p>前回は、注文を確定した直後にスタンバイを読むと、注文がまだ見えないことがあると学びました。PostgreSQLの同期レプリケーションでは、指定した同期スタンバイからの応答を待ってコミット成功を返せます。以下は同期スタンバイを設定した場合です。 <a href=\"https://www.postgresql.org/docs/current/runtime-config-wal.html#GUC-SYNCHRONOUS-COMMIT\">PostgreSQLの同期コミット設定</a></p>\n<table>\n<thead>\n<tr>\n<th>設定</th>\n<th>スタンバイ側で待つ段階</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>remote_write</code></td>\n<td>WALをOSに書き込む</td>\n</tr>\n<tr>\n<td><code>on</code></td>\n<td>WALを永続ストレージに同期する</td>\n</tr>\n<tr>\n<td><code>remote_apply</code></td>\n<td>WALを永続化し、再生して新しい読み取りから見えるようにする</td>\n</tr>\n</tbody>\n</table>\n<p><code>remote_write</code> では、スタンバイのOSがクラッシュすると、まだ永続化されていない変更を失う可能性があります。<code>on</code> でWALが永続化されても、再生が終わるまで注文は検索結果に現れません。 <a href=\"https://www.postgresql.org/docs/current/runtime-config-wal.html#GUC-SYNCHRONOUS-COMMIT\">PostgreSQLの同期コミット設定</a></p>\n<pre><code>同期スタンバイでWALをOSに書く → remote_writeの待機条件を満たす\n→ WALを永続化する → onの待機条件を満たす\n→ WALを再生する → remote_applyの待機条件を満たす\n</code></pre>\n",
+    "practice": "<h4>注文APIでの使い分け</h4>\n<p>注文APIが <code>remote_apply</code> でコミットし、その応答に必要だったスタンバイで一覧APIが新しいスナップショットを取得するなら、確定した注文を読めます。別のスタンバイに一覧の読み取りを送る場合は、そちらの反映状況も考慮します。応答に必要なスタンバイが遅れると、その分だけ注文APIの応答も遅くなり得ます。 <a href=\"https://www.postgresql.org/docs/current/warm-standby.html#SYNCHRONOUS-REPLICATION\">PostgreSQLの同期レプリケーション</a></p>\n<h4>要点と次回</h4>\n<p>同期コミットの設定は、応答までに同期スタンバイのどの段階を待つかを決めます。次回は、書き込み先を切り替えるフェイルオーバーを扱います。</p>\n",
+    "questions": [
+      [
+        "同期スタンバイを設定し、synchronous_commit = onで注文を確定しました。同じスタンバイの一覧に直後から注文が出ることは保証されますか？",
+        "<p>WALを永続化した時点でコミットの待機条件を満たします。注文が一覧に出るには、スタンバイでWALを再生し、その後のスナップショットから読み取る必要があります。</p>\n"
+      ],
+      [
+        "remote_applyでコミット成功が返りました。任意のスタンバイで注文は見えますか？",
+        "<p>コミット成功までに再生を確認するのは、応答に必要な同期スタンバイです。読み取り先が別のスタンバイなら、まだ再生が済んでいないことがあります。</p>\n"
+      ]
+    ],
+    "diagrams": {
+      "f209e0c4e4a2d4395ff38914683749881ec9c7bff55c4ebb04690569874d53b2": {
+        "title": "同期スタンバイの処理と待機条件",
+        "mermaid": "flowchart TD\nA[スタンバイでWALをOSに書く] --> B[remote_writeの待機条件を満たす]\nB --> C[WALを永続化]\nC --> D[onの待機条件を満たす]\nD --> E[WALを再生]\nE --> F[remote_applyの待機条件を満たす]"
+      }
+    }
   }
 ]
